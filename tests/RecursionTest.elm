@@ -1,7 +1,7 @@
 module RecursionTest exposing (..)
 
-import Expect exposing (Expectation)
-import Recursion as Recursion exposing (..)
+import Expect
+import Recursion exposing (..)
 import Test exposing (..)
 
 
@@ -37,19 +37,6 @@ type Tree a
     | Node (Tree a) (Tree a)
 
 
-mapTree : (a -> b) -> Tree a -> Tree b
-mapTree f =
-    runRecursion
-        (\tree ->
-            case tree of
-                Leaf a ->
-                    base (Leaf <| f a)
-
-                Node leftA rightA ->
-                    recurse leftA |> andThen (\leftB -> recurse rightA |> andThen (\rightB -> base <| Node leftB rightB))
-        )
-
-
 {-| Makes a tree of 2^n nodes
 -}
 makeDeepTree : (Int -> a) -> Int -> Tree a
@@ -80,10 +67,22 @@ makeDeepLeftTree f =
         )
 
 
-type RoseTree a
-    = RoseLeaf a
-    | RoseNode (List (RoseTree a))
-    | KeyedRoseNode (List ( String, RoseTree a ))
+mapTree : (a -> b) -> Tree a -> Tree b
+mapTree f =
+    runRecursion
+        (\tree ->
+            case tree of
+                Leaf a ->
+                    base <| Leaf (f a)
+
+                Node l r ->
+                    recurse l
+                        |> andThen
+                            (\l_ ->
+                                recurse r
+                                    |> andThen (\r_ -> base <| Node l_ r_)
+                            )
+        )
 
 
 suite : Test
@@ -110,14 +109,7 @@ suite =
                         makeDeepTree identity 16
 
                     mapped =
-                        mapTree (\x -> x + 1) tree
+                        mapTree (\x -> x) tree
                 in
-                Expect.equal mapped mapped
-        , test "mapTree doens't stack overflow 2" <|
-            \_ ->
-                let
-                    _ =
-                        makeDeepLeftTree identity 100000 |> mapTree (\x -> x + 1)
-                in
-                Expect.pass
+                Expect.equal tree mapped
         ]
