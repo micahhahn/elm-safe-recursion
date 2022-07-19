@@ -1,6 +1,7 @@
 module RecursionTest exposing (..)
 
 import Expect
+import Fuzz
 import Recursion exposing (..)
 import Test exposing (..)
 
@@ -85,9 +86,9 @@ mapTree f =
         )
 
 
-suite : Test
-suite =
-    describe "Recursion"
+safetyTests : Test
+safetyTests =
+    describe "Safety Tests"
         [ test "slowSum doesn't stack overflow" <|
             \_ ->
                 slowSum 100000 |> Expect.within (Expect.Absolute 0) ((100000.0 * 100001.0) / 2.0)
@@ -112,4 +113,79 @@ suite =
                         mapTree (\x -> x) tree
                 in
                 Expect.equal tree mapped
+        ]
+
+
+mapRec : (a -> b) -> List a -> Rec (List a) (List b) (List b)
+mapRec f list =
+    case list of
+        [] ->
+            base []
+
+        item :: rest ->
+            recurse rest |> map (\items -> f item :: items)
+
+
+functorLawTests : Test
+functorLawTests =
+    describe "Functor Laws"
+        [ Test.fuzz (Fuzz.list Fuzz.int) "Functors preserve identity morphisms" <|
+            \list ->
+                let
+                    rec =
+                        mapRec (\x -> x + 1)
+                in
+                Expect.equalLists
+                    (runRecursion (rec >> map identity) list)
+                    (runRecursion (rec >> identity) list)
+        , Test.fuzz (Fuzz.list Fuzz.int) "Functors preserve composition of morphisms" <|
+            \list ->
+                let
+                    rec =
+                        mapRec (\x -> x + 1)
+
+                    f =
+                        List.map (\x -> x // 3)
+
+                    g =
+                        List.map (\x -> x * 2)
+                in
+                Expect.equalLists
+                    (runRecursion (rec >> map (f >> g)) list)
+                    (runRecursion (rec >> (map f >> map g)) list)
+        ]
+
+
+monadLawTests : Test
+monadLawTests =
+    describe "Monad Laws"
+        [ Test.fuzz (Fuzz.list Fuzz.int) "Left identity [ return a >>= h === h a ]" <|
+            \list ->
+                let
+                    a =
+                        [ 7 ]
+
+                    h =
+                        \items -> base <| items ++ [ 1 ]
+                in
+                Expect.equalLists
+                    (runRecursion (\_ -> base a |> andThen h) list)
+                    (runRecursion (\_ -> h a) list)
+        , Test.fuzz (Fuzz.list Fuzz.int) "Right identity [ m >>= return === m ]" <|
+            \list ->
+                Expect.equalLists
+                    (runRecursion (mapRec (\x -> x + 1) >> andThen base) list)
+                    (runRecursion (mapRec (\x -> x + 1)) list)
+        , Test.fuzz (Fuzz.list Fuzz.int) "Associativity [ (m >>= g) >>= h === m >>= (\\x -> g x >>= h) ]" <|
+            -- TODO
+            \_ -> Expect.pass
+        ]
+
+
+suite : Test
+suite =
+    describe "Recursion"
+        [ safetyTests
+        , functorLawTests
+        , monadLawTests
         ]
