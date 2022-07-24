@@ -1,4 +1,4 @@
-module RecursionTest exposing (..)
+module RecursionTest exposing (suite)
 
 import Expect
 import Fuzz
@@ -81,9 +81,46 @@ mapTree f =
                         |> andThen
                             (\l_ ->
                                 recurse r
-                                    |> andThen (\r_ -> base <| Node l_ r_)
+                                    |> map (\r_ -> Node l_ r_)
                             )
         )
+
+
+type RoseTree a
+    = RoseLeaf a
+    | RoseNode (List (RoseTree a))
+
+
+mapRoseTree : (x -> y) -> RoseTree x -> RoseTree y
+mapRoseTree f =
+    runRecursion
+        (\roseTree ->
+            case roseTree of
+                RoseLeaf a ->
+                    base <| RoseLeaf (f a)
+
+                RoseNode elems ->
+                    traverseList recurse elems
+                        |> andThen (\nodes -> base (RoseNode nodes))
+        )
+
+
+
+{-
+   x = RoseNode [n1, n2, n3, n4]
+
+   Loop n1 (\b1 -> Loop n2 (\b2 -> Loop n3 (\b3 -> Loop n4 (\b4 -> RoseNode [b1, b2, b3, b4]))))
+-}
+
+
+bigRoseTree : Int -> Int -> (Int -> x) -> RoseTree x
+bigRoseTree depth breadth makeElem =
+    case depth of
+        0 ->
+            List.range 0 breadth |> List.map (makeElem >> RoseLeaf) |> RoseNode
+
+        _ ->
+            bigRoseTree (depth - 1) breadth makeElem |> List.singleton |> RoseNode
 
 
 safetyTests : Test
@@ -102,17 +139,29 @@ safetyTests =
                         makeDeepTree identity 1000
                 in
                 Expect.pass
-        , test "mapTree doens't stack overflow" <|
+        , test "mapTree doesn't stack overflow" <|
             \_ ->
                 let
                     -- tree has 2^16 nodes
+                    --tree =
+                    --   makeDeepTree identity 1
                     tree =
-                        makeDeepTree identity 16
+                        Node (Leaf 0) (Leaf 1)
 
                     mapped =
-                        mapTree (\x -> x) tree
+                        mapTree (\x -> String.fromInt x) tree
                 in
-                Expect.equal tree mapped
+                Expect.pass
+        , test "mapRoseTree doesn't stack overflow" <|
+            \_ ->
+                let
+                    tree =
+                        bigRoseTree 2 100000 identity
+
+                    _ =
+                        mapRoseTree String.fromInt tree
+                in
+                Expect.pass
         ]
 
 
