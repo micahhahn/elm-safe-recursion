@@ -1,4 +1,4 @@
-module Recursion exposing (Rec, andThen, base, map, recurse, runRecursion)
+module Recursion exposing (Rec, andThen, base, map, recurse, runRecursion, traverseList)
 
 
 type Rec a b c
@@ -22,12 +22,37 @@ runRec (Rec c) =
 
 map : (c -> d) -> Rec a b c -> Rec a b d
 map f (Rec cont) =
-    Rec (\more done -> cont (\a unwind -> more a (unwind >> map f)) (f >> done))
+    Rec
+        (\more done ->
+            cont (\a unwind -> more a (unwind >> map f)) (f >> done)
+        )
 
 
 andThen : (c -> Rec a b d) -> Rec a b c -> Rec a b d
 andThen f (Rec cont) =
-    Rec (\more done -> cont (\a unwind -> more a (unwind >> andThen f)) (\c -> runRec (f c) more done))
+    Rec
+        (\more done ->
+            cont (\a unwind -> more a (unwind >> andThen f)) (\c -> runRec (f c) more done)
+        )
+
+
+traverseList : (x -> Rec a b c) -> List x -> Rec a b (List c)
+traverseList f list =
+    let
+        go todos done =
+            case todos of
+                item :: rest ->
+                    f item |> andThen (\newItem -> go rest (newItem :: done))
+
+                _ ->
+                    base done
+    in
+    go (List.reverse list) []
+
+
+sequenceList : List a -> Rec a b (List b)
+sequenceList =
+    traverseList recurse
 
 
 type Step a b
