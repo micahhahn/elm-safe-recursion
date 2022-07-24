@@ -5,7 +5,7 @@ type Rec a b c
     = Rec ((a -> (b -> Rec a b c) -> Step a b) -> (c -> Step a b) -> Step a b)
 
 
-base : b -> Rec a b b
+base : c -> Rec a b c
 base b =
     Rec (\_ done -> done b)
 
