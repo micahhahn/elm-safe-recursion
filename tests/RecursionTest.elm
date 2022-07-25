@@ -1,8 +1,10 @@
 module RecursionTest exposing (suite)
 
+import Dict exposing (Dict)
 import Expect
 import Fuzz
 import Recursion exposing (..)
+import Recursion.Traverse exposing (..)
 import Test exposing (..)
 
 
@@ -231,10 +233,45 @@ monadLawTests =
         ]
 
 
+type DictTree a
+    = DictLeaf a
+    | DictNode (Dict String (DictTree a))
+
+
+mapDictTree : (a -> b) -> DictTree a -> DictTree b
+mapDictTree f =
+    runRecursion
+        (\tree ->
+            case tree of
+                DictLeaf a ->
+                    base <| DictLeaf (f a)
+
+                DictNode dict ->
+                    dict |> traverseDict (\v -> recurse v) |> map DictNode
+        )
+
+
+traverseDictTest : Test
+traverseDictTest =
+    describe "traverseDict"
+        [ test "traverseDict is correct" <|
+            \_ ->
+                let
+                    input =
+                        DictNode (Dict.fromList [ ( "a", DictLeaf 1 ), ( "b", DictLeaf 2 ) ])
+
+                    expected =
+                        DictNode (Dict.fromList [ ( "a", DictLeaf "1" ), ( "b", DictLeaf "2" ) ])
+                in
+                Expect.equal (mapDictTree String.fromInt input) expected
+        ]
+
+
 suite : Test
 suite =
     describe "Recursion"
         [ safetyTests
         , functorLawTests
         , monadLawTests
+        , traverseDictTest
         ]
