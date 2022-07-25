@@ -49,13 +49,58 @@ import Recursion exposing (..)
 import Recursion.Fold exposing (foldrList)
 
 
-{-| -}
+{-| Traverse a list of recursive data types.
+
+    type KeyedRoseTree a
+        = Leaf a
+        | Node (List ( String, KeyedRoseTree a ))
+
+    mapKeyedRoseTree : (a -> b) -> KeyedRoseTree a -> KeyedRoseTree b
+    mapKeyedRoseTree f =
+        runRecursion
+            (\tree ->
+                case tree of
+                    Leaf a ->
+                        base <| Leaf (f a)
+
+                    Node nodes ->
+                        nodes
+                            |> traverseList
+                                (\( key, node ) ->
+                                    recurse node |> map (Tuple.pair key)
+                                )
+                            |> map Node
+            )
+
+-}
 traverseList : (x -> Rec a b c) -> List x -> Rec a b (List c)
 traverseList project list =
     foldrList project (::) [] list
 
 
-{-| -}
+{-| A specialization of `traverseList` when each element of the list is directly recursive.
+
+`sequenceList = traverseList recurse`
+
+    type RoseTree a
+        = Leaf a
+        | Node (List (KeyedRoseTree a))
+
+    mapRoseTree : (a -> b) -> RoseTree a -> RoseTree b
+    mapRoseTree f =
+        runRecursion
+            (\tree ->
+                case tree of
+                    Leaf a ->
+                        base <| Leaf (f a)
+
+                    Node nodes ->
+                        nodes
+                            |> sequenceList
+                            |> map Node
+            )
+
+-}
 sequenceList : List a -> Rec a b (List b)
 sequenceList =
     traverseList recurse
