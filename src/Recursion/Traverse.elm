@@ -6,7 +6,15 @@ module Recursion.Traverse exposing
     , traverseArray, sequenceArray
     )
 
-{-|
+{-| This module provides traversals for common data structures with the `Rec` type.
+
+
+### What is a traversal?
+
+A traversal is a transformation over a structure that **preserves the shape** of the structure.
+In this module, the traversal functions allow us to convert from a structure containing recursive types into a recursive type containing the structure.
+
+If you are trying to write a map function over a recursive data structure, a traversal is likely what you want.
 
 
 ## List
