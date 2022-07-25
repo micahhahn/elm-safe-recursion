@@ -84,7 +84,7 @@ traverseList project list =
 
     type RoseTree a
         = Leaf a
-        | Node (List (KeyedRoseTree a))
+        | Node (List (RoseTree a))
 
     mapRoseTree : (a -> b) -> RoseTree a -> RoseTree b
     mapRoseTree f =
