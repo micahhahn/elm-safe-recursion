@@ -1,8 +1,6 @@
 # Safe and elegant recursion in Elm
 
-This package provides tools to use recursion safely in elm without sacrificing the elegance of recursive calls. 
-
-This is accomplished by having the user call `runRecursion` passing a function that will run one step of the recursion at a time.  
+This package provides tools to use recursion safely in elm without sacrificing the elegance of general recursion. 
 
 ## Example
 
@@ -14,26 +12,7 @@ type Tree a
     | Node (Tree a) (Tree a)
 ```
 
-The standard recursive map algorithm is straightforward: 
-
-```elm
-mapTree : (a -> b) -> Tree a -> Tree b
-mapTree f tree = 
-    case tree of
-        Leaf a -> 
-            Leaf (f a)
-
-        Node l r -> 
-            Node (mapTree f l) (mapTree f r)
-```
-
-⚠️⚠️⚠️ This is unsafe! ⚠️⚠️⚠️ 
-
-Since the recursive calls to `mapTree` are not located in tail call position the Tail Call Optimization will not fire. We are exposing ourselves to a crash if the tree is deep enough that we would have a stack overflow while executing it! 
-
-### A better way
-
-Let's see what the implementation of `mapTree` would be using `elm-safe-recursion`: 
+The safe solution to implement a map function using this library would look like the following:
 
 ```elm
 mapTree : (a -> b) -> Tree a -> Tree b
@@ -48,6 +27,4 @@ mapTree f initTree =
     ) initTree
 ```
 
-If you squint this roughly looks like the straightforward recursive algorithm with the "base" and "recursive" cases called out explicitly with a little bit of glue. 
-
-Let's break down how this works piece by piece.
+For more details on the types and functions involved and why this works check out the `Recursion` module.
