@@ -1,7 +1,7 @@
 {
     "type": "package",
     "name": "micahhahn/elm-safe-recursion",
-    "summary": "Elegant recursion without blowing the stack",
+    "summary": "Elegant recursion in Elm without blowing the stack",
     "license": "BSD-3-Clause",
     "version": "1.0.0",
     "exposed-modules": [
