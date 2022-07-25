@@ -78,12 +78,24 @@ We also explicitly call `base` on `Leaf (f a)` to terminate the recursion in the
 
 Finally `runRecursion` takes this function we provide and iteratively runs it in a stack safe way to produce the final value.
 
+
+## Recursion
+
 @docs runRecursion, Rec
 
 @docs base
 @docs recurse
 @docs map
 @docs andThen
+
+
+## Containers
+
+If you data type you are recursing uses a container that holds a recursive value, you'll want to check out `Recursion.Traverse` and `Recursion.Fold`.
+
+`Recursion.Traverse` is useful for cases where we want to **preserve** the structure of our datatype.
+
+`Recursion.Fold` is useful for cases where we want to **collapse** the structure of our datatype into another type.
 
 -}
 
