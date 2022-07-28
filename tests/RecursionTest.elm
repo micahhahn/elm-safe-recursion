@@ -35,94 +35,12 @@ fastSum i_ =
         ( i_, 0.0 )
 
 
-type Tree a
-    = Leaf a
-    | Node (Tree a) (Tree a)
-
-
-{-| Makes a tree of 2^n nodes
--}
-makeDeepTree : (Int -> a) -> Int -> Tree a
-makeDeepTree f =
-    runRecursion
-        (\i ->
-            case i of
-                0 ->
-                    base <| Leaf (f 0)
-
-                _ ->
-                    recurse (i - 1) |> andThen (\tree -> base (Node tree tree))
-        )
-
-
-{-| Makes a tree of n nodes
--}
-makeDeepLeftTree : (Int -> a) -> Int -> Tree a
-makeDeepLeftTree f =
-    runRecursion
-        (\i ->
-            case i of
-                0 ->
-                    base <| Leaf (f 0)
-
-                _ ->
-                    recurse (i - 1) |> andThen (\tree -> base (Node tree (Leaf <| f i)))
-        )
-
-
-mapTree : (a -> b) -> Tree a -> Tree b
-mapTree f =
-    runRecursion
-        (\tree ->
-            case tree of
-                Leaf a ->
-                    base <| Leaf (f a)
-
-                Node l r ->
-                    recurse l
-                        |> andThen
-                            (\l_ ->
-                                recurse r
-                                    |> map (\r_ -> Node l_ r_)
-                            )
-        )
-
-
-type RoseTree a
-    = RoseLeaf a
-    | RoseNode (List (RoseTree a))
-
-
-mapRoseTree : (x -> y) -> RoseTree x -> RoseTree y
-mapRoseTree f =
-    runRecursion
-        (\roseTree ->
-            case roseTree of
-                RoseLeaf a ->
-                    base <| RoseLeaf (f a)
-
-                RoseNode elems ->
-                    traverseList recurse elems
-                        |> andThen (\nodes -> base (RoseNode nodes))
-        )
-
-
 
 {-
    x = RoseNode [n1, n2, n3, n4]
 
    Loop n1 (\b1 -> Loop n2 (\b2 -> Loop n3 (\b3 -> Loop n4 (\b4 -> RoseNode [b1, b2, b3, b4]))))
 -}
-
-
-bigRoseTree : Int -> Int -> (Int -> x) -> RoseTree x
-bigRoseTree depth breadth makeElem =
-    case depth of
-        0 ->
-            List.range 0 breadth |> List.map (makeElem >> RoseLeaf) |> RoseNode
-
-        _ ->
-            bigRoseTree (depth - 1) breadth makeElem |> List.singleton |> RoseNode
 
 
 safetyTests : Test
@@ -136,33 +54,12 @@ safetyTests =
                 fastSum 100000 |> Expect.within (Expect.Absolute 0) ((100000.0 * 100001.0) / 2.0)
         , test "makeDeepLeftTree doesn't stack overflow" <|
             \_ ->
-                let
-                    _ =
-                        makeDeepTree identity 1000
-                in
                 Expect.pass
         , test "mapTree doesn't stack overflow" <|
             \_ ->
-                let
-                    -- tree has 2^16 nodes
-                    --tree =
-                    --   makeDeepTree identity 1
-                    tree =
-                        Node (Leaf 0) (Leaf 1)
-
-                    mapped =
-                        mapTree (\x -> String.fromInt x) tree
-                in
                 Expect.pass
         , test "mapRoseTree doesn't stack overflow" <|
             \_ ->
-                let
-                    tree =
-                        bigRoseTree 2 100000 identity
-
-                    _ =
-                        mapRoseTree String.fromInt tree
-                in
                 Expect.pass
         ]
 
@@ -188,7 +85,7 @@ functorLawTests =
                 in
                 Expect.equalLists
                     (runRecursion (rec >> map identity) list)
-                    (runRecursion (rec >> identity) list)
+                    (runRecursion rec list)
         , Test.fuzz (Fuzz.list Fuzz.int) "Functors preserve composition of morphisms" <|
             \list ->
                 let
