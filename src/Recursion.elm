@@ -1,12 +1,12 @@
-module Recursion exposing (Rec(..), runRecursion)
+module Recursion exposing (Step(..), runRecursion)
 
 
-type Rec a b
+type Step a b
     = Base b
-    | Recurse a (b -> Rec a b)
+    | Recurse a (b -> Step a b)
 
 
-runRecursion : (a -> Rec a b) -> a -> b
+runRecursion : (a -> Step a b) -> a -> b
 runRecursion project init =
     let
         go step stack =
