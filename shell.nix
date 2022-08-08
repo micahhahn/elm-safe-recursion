@@ -9,5 +9,7 @@ pkgs.mkShell {
     elmPackages.elm-format
     elmPackages.elm-test
     elmPackages.elm-doc-preview
+    elmPackages.elm-json
+    elmPackages.elm-review
   ];
 }
