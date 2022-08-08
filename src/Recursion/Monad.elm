@@ -1,4 +1,4 @@
-module Recursion exposing
+module Recursion.Monad exposing
     ( runRecursion, Rec
     , base
     , recurse
@@ -93,9 +93,9 @@ Finally `runRecursion` takes this function we provide and iteratively runs it in
 
 If you data type you are recursing uses a container that holds a recursive value, you'll want to check out `Recursion.Traverse` and `Recursion.Fold`.
 
-[`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Traverse) is useful for cases where we want to **preserve** the structure of our datatype.
+[`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Monad-Traverse) is useful for cases where we want to **preserve** the structure of our datatype.
 
-[`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Fold) is useful for cases where we want to **collapse** the structure of our datatype into another type.
+[`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Monad-Fold) is useful for cases where we want to **collapse** the structure of our datatype into another type.
 
 -}
 

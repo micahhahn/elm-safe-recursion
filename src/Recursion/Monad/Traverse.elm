@@ -1,4 +1,4 @@
-module Recursion.Traverse exposing
+module Recursion.Monad.Traverse exposing
     ( traverseList, sequenceList
     , traverseDict, sequenceDict
     , traverseMaybe, sequenceMaybe
@@ -45,8 +45,8 @@ If you are trying to write a map function over a recursive data structure, a tra
 
 import Array exposing (Array)
 import Dict exposing (Dict)
-import Recursion exposing (..)
-import Recursion.Fold exposing (foldrList)
+import Recursion.Monad exposing (..)
+import Recursion.Monad.Fold exposing (foldrList)
 
 
 {-| Traverse a list of recursive data types.

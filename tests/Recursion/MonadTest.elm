@@ -1,10 +1,10 @@
-module RecursionTest exposing (suite)
+module Recursion.MonadTest exposing (suite)
 
 import Dict exposing (Dict)
 import Expect
 import Fuzz
-import Recursion exposing (..)
-import Recursion.Traverse exposing (..)
+import Recursion.Monad exposing (..)
+import Recursion.Monad.Traverse exposing (..)
 import Test exposing (..)
 
 
@@ -166,7 +166,7 @@ traverseDictTest =
 
 suite : Test
 suite =
-    describe "Recursion"
+    describe "Recursion.Monad"
         [ safetyTests
         , functorLawTests
         , monadLawTests

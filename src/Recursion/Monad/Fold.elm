@@ -1,4 +1,4 @@
-module Recursion.Fold exposing
+module Recursion.Monad.Fold exposing
     ( foldlList, foldrList
     , foldlDict, foldrDict
     , foldlArray, foldrArray
@@ -25,7 +25,7 @@ module Recursion.Fold exposing
 
 import Array exposing (Array)
 import Dict exposing (Dict)
-import Recursion exposing (..)
+import Recursion.Monad exposing (..)
 
 
 {-| Reduces a list that contains recursive types from left to right.
