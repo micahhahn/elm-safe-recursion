@@ -5,6 +5,8 @@
     "license": "BSD-3-Clause",
     "version": "1.0.1",
     "exposed-modules": [
+        "Recursion",
+        "Recursion.Fold",
         "Recursion.Monad",
         "Recursion.Monad.Traverse",
         "Recursion.Monad.Fold"

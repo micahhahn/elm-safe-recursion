@@ -1,21 +1,51 @@
-module Recursion exposing (Step, andThen, base, recurse, runRecursion)
+module Recursion exposing
+    ( Step
+    , base, recurse, andThen
+    , runRecursion
+    )
+
+{-| This module provides an abstraction over general recursion that allows the recursive computation
+to be executed without risk of blowing the stack.
+
+@docs Step
+
+@docs base, recurse, andThen
+
+@docs runRecursion
+
+-}
 
 
+{-| An opaque type representing a step of a recursive computation.
+
+You can construct `Step` values using `base` and `recurse`, and can combine them using `andThen`.
+
+-}
 type Step a b
     = Base b
     | Recurse a (List (b -> Step a b))
 
 
+{-| The base case of a recursion.
+-}
 base : b -> Step a b
 base =
     Base
 
 
+{-| Recurse on a value.
+-}
 recurse : a -> Step a b
 recurse a =
     Recurse a []
 
 
+{-| Create a new step to run when another step has finished.
+
+Note that the type is slightly different from other well known `andThen` functions like [Maybe.andThen](https://package.elm-lang.org/packages/elm/core/latest/Maybe#andThen) or [Result.andThen](https://package.elm-lang.org/packages/elm/core/latest/Result#andThen) becuase
+we are **not** able to change the type of `b`.
+
+-}
 andThen : (b -> Step a b) -> Step a b -> Step a b
 andThen next step =
     case step of
@@ -38,6 +68,8 @@ queueStackMerge queue stack =
             queueStackMerge rest (item :: stack)
 
 
+{-| Run a recursion
+-}
 runRecursion : (a -> Step a b) -> a -> b
 runRecursion project init =
     let
