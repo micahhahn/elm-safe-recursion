@@ -67,9 +67,9 @@ import Recursion.Fold exposing (..)
                         sequenceList nodes (Node >> base)
 
 -}
-sequenceList : List a -> (List b -> Step a b) -> Step a b
-sequenceList items after =
-    foldList (::) [] items (List.reverse >> after)
+sequenceList : List a -> Rec a b (List b)
+sequenceList items =
+    foldList (::) [] (List.reverse items)
 
 
 {-| Traverse a list where the elements contain recursive types.
@@ -93,90 +93,86 @@ sequenceList items after =
                             (Node >> base)
 
 -}
-traverseList : (c -> ( Step a b, b -> d )) -> List c -> (List d -> Step a b) -> Step a b
-traverseList project items after =
-    foldMapList (project >> Tuple.mapSecond ((<<) (::))) [] items (List.reverse >> after)
+traverseList : (x -> Rec a b c) -> List x -> Rec a b (List c)
+traverseList project items =
+    foldMapList (\x cs -> project x |> map (\c -> c :: cs)) [] (List.reverse items)
 
 
 {-| Traverse a `Dict` where the values are recursive types.
 -}
-sequenceDict : Dict comparable a -> (Dict comparable b -> Step a b) -> Step a b
-sequenceDict dict after =
-    foldMapList (\( k, v ) -> ( recurse v, Tuple.pair k >> (::) )) [] (Dict.toList dict) (Dict.fromList >> after)
+sequenceDict : Dict comparable a -> Rec a b (Dict comparable b)
+sequenceDict dict =
+    foldDict (\k v cs -> ( k, v ) :: cs) [] dict
+        |> map Dict.fromList
 
 
 {-| Traverse a `Dict` where the values contain recursive types.
 -}
-traverseDict : (comparable -> c -> ( Step a b, b -> d )) -> Dict comparable c -> (Dict comparable d -> Step a b) -> Step a b
-traverseDict project dict after =
-    traverseList (\( k, v ) -> project k v |> Tuple.mapSecond ((<<) (Tuple.pair k))) (Dict.toList dict) (Dict.fromList >> after)
+traverseDict : (comparable -> v -> Rec a b c) -> Dict comparable v -> Rec a b (Dict comparable c)
+traverseDict project dict =
+    foldMapDict (\k v cs -> project k v |> map (\c -> ( k, c ) :: cs)) [] dict
+        |> map Dict.fromList
 
 
 {-| Traverse an `Array` where the values are recursive types.
 -}
-sequenceArray : Array a -> (Array b -> Step a b) -> Step a b
-sequenceArray items after =
-    sequenceList (Array.toList items) (Array.fromList >> after)
+sequenceArray : Array a -> Rec a b (Array b)
+sequenceArray items =
+    sequenceList (Array.toList items)
+        |> map Array.fromList
 
 
 {-| Traverse an `Array` where the values contain recursive types.
 -}
-traverseArray : (c -> ( Step a b, b -> d )) -> Array c -> (Array d -> Step a b) -> Step a b
-traverseArray project items after =
-    traverseList project (Array.toList items) (Array.fromList >> after)
+traverseArray : (x -> Rec a b c) -> Array x -> Rec a b (Array c)
+traverseArray project items =
+    traverseList project (Array.toList items)
+        |> map Array.fromList
 
 
 {-| Traverse a `Maybe` where the value might be a recursive type.
 -}
-sequenceMaybe : Maybe a -> (Maybe b -> Step a b) -> Step a b
-sequenceMaybe maybe after =
+sequenceMaybe : Maybe a -> Rec a b (Maybe b)
+sequenceMaybe maybe =
     case maybe of
         Nothing ->
-            after Nothing
+            base Nothing
 
         Just a ->
-            recurse a |> andThen (Just >> after)
+            recurseThen a (Just >> base)
 
 
 {-| Traverse a `Maybe` where the value might contain a recursive type.
 -}
-traverseMaybe : (c -> ( Step a b, b -> d )) -> Maybe c -> (Maybe d -> Step a b) -> Step a b
-traverseMaybe project maybe after =
+traverseMaybe : (c -> Rec a b c) -> Maybe c -> Rec a b (Maybe c)
+traverseMaybe project maybe =
     case maybe of
         Nothing ->
-            after Nothing
+            base Nothing
 
         Just c ->
-            let
-                ( step, map ) =
-                    project c
-            in
-            step |> andThen (map >> Just >> after)
+            project c |> map Just
 
 
 {-| Traverse a `Result` where the success value might be a recursive type.
 -}
-sequenceResult : Result error a -> (Result error b -> Step a b) -> Step a b
-sequenceResult result after =
+sequenceResult : Result error a -> Rec a b (Result error b)
+sequenceResult result =
     case result of
         Err err ->
-            after (Err err)
+            base (Err err)
 
         Ok a ->
-            recurse a |> andThen (Ok >> after)
+            recurseThen a (Ok >> base)
 
 
 {-| Traverse a `Result` where the success value might contain a recursive type.
 -}
-traverseResult : (c -> ( Step a b, b -> d )) -> Result error c -> (Result error d -> Step a b) -> Step a b
-traverseResult project result after =
+traverseResult : (value -> Rec a b c) -> Result error value -> Rec a b (Result error c)
+traverseResult project result =
     case result of
         Err err ->
-            after (Err err)
+            base (Err err)
 
         Ok c ->
-            let
-                ( step, map ) =
-                    project c
-            in
-            step |> andThen (map >> Ok >> after)
+            project c |> map Ok
