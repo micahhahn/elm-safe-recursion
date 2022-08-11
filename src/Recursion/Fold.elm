@@ -44,7 +44,7 @@ foldList fold accum items =
             base accum
 
         item :: rest ->
-            recurse item |> andThen (\b -> foldList fold (fold b accum) rest)
+            recurseThen item (\b -> foldList fold (fold b accum) rest)
 
 
 {-| Fold a list of items which contain recursive types.
@@ -70,7 +70,7 @@ foldDict fold init dict =
                     base accum
 
                 ( key, value ) :: rest ->
-                    recurse value |> andThen (\b -> go rest (fold key b accum))
+                    recurseThen value (\b -> go rest (fold key b accum))
     in
     go (Dict.toList dict) init
 

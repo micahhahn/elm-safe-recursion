@@ -139,7 +139,7 @@ sequenceMaybe maybe =
             base Nothing
 
         Just a ->
-            recurse a |> map Just
+            recurseThen a (Just >> base)
 
 
 {-| Traverse a `Maybe` where the value might contain a recursive type.
@@ -163,7 +163,7 @@ sequenceResult result =
             base (Err err)
 
         Ok a ->
-            recurse a |> map Ok
+            recurseThen a (Ok >> base)
 
 
 {-| Traverse a `Result` where the success value might contain a recursive type.

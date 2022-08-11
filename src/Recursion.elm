@@ -1,7 +1,7 @@
 module Recursion exposing
     ( base, recurse, map, andThen
     , runRecursion
-    , Rec
+    , Rec, recurseThen
     )
 
 {-| This module provides an abstraction over general recursion that allows the recursive computation
@@ -38,6 +38,16 @@ base =
 recurse : a -> Rec a b b
 recurse a =
     Recurse a base
+
+
+{-| Recurse on a value and specify an action to do immediately after.
+
+`recurseThen x (\f -> ...)` is faster than `recurse x |> andThen (\f -> ...)`
+
+-}
+recurseThen : a -> (b -> Rec a b c) -> Rec a b c
+recurseThen =
+    Recurse
 
 
 {-| Map on the value.
