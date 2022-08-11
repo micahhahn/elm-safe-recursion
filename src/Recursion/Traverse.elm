@@ -67,7 +67,7 @@ import Recursion.Fold exposing (..)
                         sequenceList nodes (Node >> base)
 
 -}
-sequenceList : List a -> Step a b (List b)
+sequenceList : List a -> Rec a b (List b)
 sequenceList items =
     foldList (::) [] (List.reverse items)
 
@@ -93,14 +93,14 @@ sequenceList items =
                             (Node >> base)
 
 -}
-traverseList : (x -> Step a b c) -> List x -> Step a b (List c)
+traverseList : (x -> Rec a b c) -> List x -> Rec a b (List c)
 traverseList project items =
     foldMapList (\x cs -> project x |> map (\c -> c :: cs)) [] (List.reverse items)
 
 
 {-| Traverse a `Dict` where the values are recursive types.
 -}
-sequenceDict : Dict comparable a -> Step a b (Dict comparable b)
+sequenceDict : Dict comparable a -> Rec a b (Dict comparable b)
 sequenceDict dict =
     foldDict (\k v cs -> ( k, v ) :: cs) [] dict
         |> map Dict.fromList
@@ -108,7 +108,7 @@ sequenceDict dict =
 
 {-| Traverse a `Dict` where the values contain recursive types.
 -}
-traverseDict : (comparable -> v -> Step a b c) -> Dict comparable v -> Step a b (Dict comparable c)
+traverseDict : (comparable -> v -> Rec a b c) -> Dict comparable v -> Rec a b (Dict comparable c)
 traverseDict project dict =
     foldMapDict (\k v cs -> project k v |> map (\c -> ( k, c ) :: cs)) [] dict
         |> map Dict.fromList
@@ -116,7 +116,7 @@ traverseDict project dict =
 
 {-| Traverse an `Array` where the values are recursive types.
 -}
-sequenceArray : Array a -> Step a b (Array b)
+sequenceArray : Array a -> Rec a b (Array b)
 sequenceArray items =
     sequenceList (Array.toList items)
         |> map Array.fromList
@@ -124,7 +124,7 @@ sequenceArray items =
 
 {-| Traverse an `Array` where the values contain recursive types.
 -}
-traverseArray : (x -> Step a b c) -> Array x -> Step a b (Array c)
+traverseArray : (x -> Rec a b c) -> Array x -> Rec a b (Array c)
 traverseArray project items =
     traverseList project (Array.toList items)
         |> map Array.fromList
@@ -132,7 +132,7 @@ traverseArray project items =
 
 {-| Traverse a `Maybe` where the value might be a recursive type.
 -}
-sequenceMaybe : Maybe a -> Step a b (Maybe b)
+sequenceMaybe : Maybe a -> Rec a b (Maybe b)
 sequenceMaybe maybe =
     case maybe of
         Nothing ->
@@ -144,7 +144,7 @@ sequenceMaybe maybe =
 
 {-| Traverse a `Maybe` where the value might contain a recursive type.
 -}
-traverseMaybe : (c -> Step a b c) -> Maybe c -> Step a b (Maybe c)
+traverseMaybe : (c -> Rec a b c) -> Maybe c -> Rec a b (Maybe c)
 traverseMaybe project maybe =
     case maybe of
         Nothing ->
@@ -156,7 +156,7 @@ traverseMaybe project maybe =
 
 {-| Traverse a `Result` where the success value might be a recursive type.
 -}
-sequenceResult : Result error a -> Step a b (Result error b)
+sequenceResult : Result error a -> Rec a b (Result error b)
 sequenceResult result =
     case result of
         Err err ->
@@ -168,7 +168,7 @@ sequenceResult result =
 
 {-| Traverse a `Result` where the success value might contain a recursive type.
 -}
-traverseResult : (value -> Step a b c) -> Result error value -> Step a b (Result error c)
+traverseResult : (value -> Rec a b c) -> Result error value -> Rec a b (Result error c)
 traverseResult project result =
     case result of
         Err err ->

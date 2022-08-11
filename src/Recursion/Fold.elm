@@ -37,7 +37,7 @@ import Set exposing (Set)
 
 {-| Fold a list of items which are recursive types.
 -}
-foldList : (b -> c -> c) -> c -> List a -> Step a b c
+foldList : (b -> c -> c) -> c -> List a -> Rec a b c
 foldList fold accum items =
     case items of
         [] ->
@@ -49,7 +49,7 @@ foldList fold accum items =
 
 {-| Fold a list of items which contain recursive types.
 -}
-foldMapList : (x -> c -> Step a b c) -> c -> List x -> Step a b c
+foldMapList : (x -> c -> Rec a b c) -> c -> List x -> Rec a b c
 foldMapList foldMap accum items =
     case items of
         [] ->
@@ -61,7 +61,7 @@ foldMapList foldMap accum items =
 
 {-| Fold a `Dict` whose values are recursive types.
 -}
-foldDict : (comparable -> b -> c -> c) -> c -> Dict comparable a -> Step a b c
+foldDict : (comparable -> b -> c -> c) -> c -> Dict comparable a -> Rec a b c
 foldDict fold init dict =
     let
         go todo accum =
@@ -77,7 +77,7 @@ foldDict fold init dict =
 
 {-| Fold a `Dict` whose values contain recursive types.
 -}
-foldMapDict : (comparable -> v -> c -> Step a b c) -> c -> Dict comparable v -> Step a b c
+foldMapDict : (comparable -> v -> c -> Rec a b c) -> c -> Dict comparable v -> Rec a b c
 foldMapDict foldMap init dict =
     let
         go todo accum =
@@ -93,27 +93,27 @@ foldMapDict foldMap init dict =
 
 {-| Fold an `Array` whose items are recursive types.
 -}
-foldArray : (b -> c -> c) -> c -> Array a -> Step a b c
+foldArray : (b -> c -> c) -> c -> Array a -> Rec a b c
 foldArray fold accum items =
     foldList fold accum (Array.toList items)
 
 
 {-| Fold an `Array` whose items contain recursive types.
 -}
-foldMapArray : (x -> c -> Step a b c) -> c -> Array x -> Step a b c
+foldMapArray : (x -> c -> Rec a b c) -> c -> Array x -> Rec a b c
 foldMapArray foldMap accum items =
     foldMapList foldMap accum (Array.toList items)
 
 
 {-| Fold an `Set` whose items are recursive types.
 -}
-foldSet : (b -> c -> c) -> c -> Set a -> Step a b c
+foldSet : (b -> c -> c) -> c -> Set a -> Rec a b c
 foldSet fold accum items =
     foldList fold accum (Set.toList items)
 
 
 {-| Fold an `Set` whose items contain recursive types.
 -}
-foldMapSet : (x -> c -> Step a b c) -> c -> Set x -> Step a b c
+foldMapSet : (x -> c -> Rec a b c) -> c -> Set x -> Rec a b c
 foldMapSet foldMap accum items =
     foldMapList foldMap accum (Set.toList items)

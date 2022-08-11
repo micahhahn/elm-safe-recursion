@@ -1,7 +1,7 @@
 module Recursion exposing
-    ( Step
-    , base, recurse, map, andThen
+    ( base, recurse, map, andThen
     , runRecursion
+    , Rec
     )
 
 {-| This module provides an abstraction over general recursion that allows the recursive computation
@@ -21,28 +21,28 @@ to be executed without risk of blowing the stack.
 You can construct `Step` values using `base` and `recurse`, and can combine them using `andThen`.
 
 -}
-type Step a b c
+type Rec a b c
     = Base c
-    | Recurse a (b -> Step a b c)
+    | Recurse a (b -> Rec a b c)
 
 
 {-| The base case of a recursion.
 -}
-base : c -> Step a b c
+base : c -> Rec a b c
 base =
     Base
 
 
 {-| Recurse on a value.
 -}
-recurse : a -> Step a b b
+recurse : a -> Rec a b b
 recurse a =
     Recurse a base
 
 
 {-| Map on the value.
 -}
-map : (c -> d) -> Step a b c -> Step a b d
+map : (c -> d) -> Rec a b c -> Rec a b d
 map f step =
     case step of
         Base c ->
@@ -54,7 +54,7 @@ map f step =
 
 {-| Create a new step to run when another step has finished.
 -}
-andThen : (c -> Step a b d) -> Step a b c -> Step a b d
+andThen : (c -> Rec a b d) -> Rec a b c -> Rec a b d
 andThen next step =
     case step of
         Base c ->
@@ -66,7 +66,7 @@ andThen next step =
 
 {-| Run a recursion
 -}
-runRecursion : (a -> Step a b b) -> a -> b
+runRecursion : (a -> Rec a b b) -> a -> b
 runRecursion project init =
     let
         go step stack =
