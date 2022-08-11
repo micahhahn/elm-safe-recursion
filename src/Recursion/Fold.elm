@@ -35,86 +35,85 @@ import Recursion exposing (..)
 import Set exposing (Set)
 
 
-{-| Fold a list of recursive types.
+{-| Fold a list of items which are recursive types.
 -}
-foldList : (b -> c -> c) -> c -> List a -> (c -> Step a b) -> Step a b
-foldList fold init items after =
+foldList : (b -> c -> c) -> c -> List a -> Step a b c
+foldList fold accum items =
+    case items of
+        [] ->
+            base accum
+
+        item :: rest ->
+            recurse item |> andThen (\b -> foldList fold (fold b accum) rest)
+
+
+{-| Fold a list of items which contain recursive types.
+-}
+foldMapList : (x -> c -> Step a b c) -> c -> List x -> Step a b c
+foldMapList foldMap accum items =
+    case items of
+        [] ->
+            base accum
+
+        item :: rest ->
+            foldMap item accum |> andThen (\c -> foldMapList foldMap c rest)
+
+
+{-| Fold a `Dict` whose values are recursive types.
+-}
+foldDict : (comparable -> b -> c -> c) -> c -> Dict comparable a -> Step a b c
+foldDict fold init dict =
     let
         go todo accum =
             case todo of
                 [] ->
-                    after accum
+                    base accum
 
-                item :: rest ->
-                    recurse item |> andThen (\b -> go rest (fold b accum))
+                ( key, value ) :: rest ->
+                    recurse value |> andThen (\b -> go rest (fold key b accum))
     in
-    go items init
+    go (Dict.toList dict) init
 
 
-{-| Fold a list that contains recursive types with a selector.
+{-| Fold a `Dict` whose values contain recursive types.
 -}
-foldMapList : (c -> ( Step a b, b -> d -> d )) -> d -> List c -> (d -> Step a b) -> Step a b
-foldMapList project init items after =
+foldMapDict : (comparable -> v -> c -> Step a b c) -> c -> Dict comparable v -> Step a b c
+foldMapDict foldMap init dict =
     let
-        go : List c -> d -> Step a b
         go todo accum =
             case todo of
                 [] ->
-                    after accum
+                    base accum
 
-                item :: rest ->
-                    let
-                        ( step, fold ) =
-                            project item
-                    in
-                    step
-                        |> andThen (\b -> go rest (fold b accum))
+                ( key, value ) :: rest ->
+                    foldMap key value accum |> andThen (go rest)
     in
-    go items init
+    go (Dict.toList dict) init
 
 
-uncurry : (a -> b -> c) -> ( a, b ) -> c
-uncurry f ( a, b ) =
-    f a b
-
-
-{-| Fold a Dict with recursive value types.
+{-| Fold an `Array` whose items are recursive types.
 -}
-foldDict : (comparable -> b -> c -> c) -> c -> Dict comparable a -> (c -> Step a b) -> Step a b
-foldDict fold init dict after =
-    foldMapList (\( k, a ) -> ( recurse a, fold k )) init (Dict.toList dict) after
+foldArray : (b -> c -> c) -> c -> Array a -> Step a b c
+foldArray fold accum items =
+    foldList fold accum (Array.toList items)
 
 
-{-| Fold a Dict with recursive value types with a selector.
+{-| Fold an `Array` whose items contain recursive types.
 -}
-foldMapDict : (comparable -> c -> ( Step a b, b -> d -> d )) -> d -> Dict comparable c -> (d -> Step a b) -> Step a b
-foldMapDict fold init dict after =
-    foldMapList (uncurry fold) init (Dict.toList dict) after
+foldMapArray : (x -> c -> Step a b c) -> c -> Array x -> Step a b c
+foldMapArray foldMap accum items =
+    foldMapList foldMap accum (Array.toList items)
 
 
-{-| Fold an array of recursive types.
+{-| Fold an `Set` whose items are recursive types.
 -}
-foldArray : (b -> c -> c) -> c -> Array a -> (c -> Step a b) -> Step a b
-foldArray fold init items after =
-    foldList fold init (Array.toList items) after
+foldSet : (b -> c -> c) -> c -> Set a -> Step a b c
+foldSet fold accum items =
+    foldList fold accum (Set.toList items)
 
 
-{-| Fold an array that contains recursive types with a selector.
+{-| Fold an `Set` whose items contain recursive types.
 -}
-foldMapArray : (c -> ( Step a b, b -> d -> d )) -> d -> Array c -> (d -> Step a b) -> Step a b
-foldMapArray fold init items after =
-    foldMapList fold init (Array.toList items) after
-
-
-{-| Fold a set of recursive types.
--}
-foldSet : (b -> c -> c) -> c -> Set a -> (c -> Step a b) -> Step a b
-foldSet fold init items after =
-    foldList fold init (Set.toList items) after
-
-
-{-| Fold a set that contains recursive types with a selector.
--}
-foldMapSet : (c -> ( Step a b, b -> d -> d )) -> d -> Set c -> (d -> Step a b) -> Step a b
-foldMapSet fold init items after =
-    foldMapList fold init (Set.toList items) after
+foldMapSet : (x -> c -> Step a b c) -> c -> Set x -> Step a b c
+foldMapSet foldMap accum items =
+    foldMapList foldMap accum (Set.toList items)

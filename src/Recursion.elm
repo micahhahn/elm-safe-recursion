@@ -1,6 +1,6 @@
 module Recursion exposing
     ( Step
-    , base, recurse, andThen
+    , base, recurse, map, andThen
     , runRecursion
     )
 
@@ -9,7 +9,7 @@ to be executed without risk of blowing the stack.
 
 @docs Step
 
-@docs base, recurse, andThen
+@docs base, recurse, map, andThen
 
 @docs runRecursion
 
@@ -21,56 +21,52 @@ to be executed without risk of blowing the stack.
 You can construct `Step` values using `base` and `recurse`, and can combine them using `andThen`.
 
 -}
-type Step a b
-    = Base b
-    | Recurse a (List (b -> Step a b))
+type Step a b c
+    = Base c
+    | Recurse a (b -> Step a b c)
 
 
 {-| The base case of a recursion.
 -}
-base : b -> Step a b
+base : c -> Step a b c
 base =
     Base
 
 
 {-| Recurse on a value.
 -}
-recurse : a -> Step a b
+recurse : a -> Step a b b
 recurse a =
-    Recurse a []
+    Recurse a base
+
+
+{-| Map on the value.
+-}
+map : (c -> d) -> Step a b c -> Step a b d
+map f step =
+    case step of
+        Base c ->
+            Base (f c)
+
+        Recurse a after ->
+            Recurse a (after >> map f)
 
 
 {-| Create a new step to run when another step has finished.
-
-Note that the type is slightly different from other well known `andThen` functions like [Maybe.andThen](https://package.elm-lang.org/packages/elm/core/latest/Maybe#andThen) or [Result.andThen](https://package.elm-lang.org/packages/elm/core/latest/Result#andThen) becuase
-we are **not** able to change the type of `b`.
-
 -}
-andThen : (b -> Step a b) -> Step a b -> Step a b
+andThen : (c -> Step a b d) -> Step a b c -> Step a b d
 andThen next step =
     case step of
-        Base b ->
-            next b
+        Base c ->
+            next c
 
-        Recurse a queue ->
-            Recurse a (next :: queue)
-
-
-{-| Assumes queue is stored in reverse order (last elment stored in head)
--}
-queueStackMerge : List a -> List a -> List a
-queueStackMerge queue stack =
-    case queue of
-        [] ->
-            stack
-
-        item :: rest ->
-            queueStackMerge rest (item :: stack)
+        Recurse a after ->
+            Recurse a (after >> andThen next)
 
 
 {-| Run a recursion
 -}
-runRecursion : (a -> Step a b) -> a -> b
+runRecursion : (a -> Step a b b) -> a -> b
 runRecursion project init =
     let
         go step stack =
@@ -83,7 +79,7 @@ runRecursion project init =
                         next :: rest ->
                             go (next b) rest
 
-                Recurse a queue ->
-                    go (project a) (queueStackMerge queue stack)
+                Recurse a after ->
+                    go (project a) (after :: stack)
     in
     go (project init) []
