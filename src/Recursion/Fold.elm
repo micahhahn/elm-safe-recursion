@@ -123,7 +123,7 @@ foldDict fold init dict =
                     base accum
 
                 ( key, value ) :: rest ->
-                    recurseThen value (\b -> go rest (fold key b accum))
+                    recurseThen value (\t -> go rest (fold key t accum))
     in
     go (Dict.toList dict) init
 
