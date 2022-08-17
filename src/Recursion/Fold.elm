@@ -43,15 +43,14 @@ import Set exposing (Set)
 
     countRoseTreeLeaves : RoseTree a -> Int
     countRoseTreeLeaves =
-        runRecursion
-            (\tree ->
+        runRecursion <|
+            \tree ->
                 case tree of
                     Leaf _ ->
                         base 1
 
                     Node trees ->
                         foldList (+) 0 trees
-            )
 
 -}
 foldList : (t -> a -> a) -> a -> List r -> Rec r t a
@@ -72,8 +71,8 @@ foldList fold accum items =
 
     countRoseTreeLeaves : KeyedRoseTree a -> Int
     countRoseTreeLeaves =
-        runRecursion
-            (\tree ->
+        runRecursion <|
+            \tree ->
                 case tree of
                     Leaf _ ->
                         base 1
@@ -83,7 +82,6 @@ foldList fold accum items =
                             (\( _, rec ) count -> recurseMap rec ((+) count))
                             0
                             trees
-            )
 
 -}
 foldMapList : (x -> a -> Rec r t a) -> a -> List x -> Rec r t a

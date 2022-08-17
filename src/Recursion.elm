@@ -119,13 +119,16 @@ base =
 
 
 {-| Recurse on a value.
+
+When the recursion is complete this will contain a value of type `t`.
+
 -}
 recurse : r -> Rec r t t
 recurse r =
     Recurse r base
 
 
-{-| Recurse on a value and then map immediately after.
+{-| Recurse on a value and then map over the result.
 
 If you find yourself writing code looks like `recurse x |> map` you should consider using `recurseMap` instead
 as it will be much more efficient.
@@ -136,7 +139,7 @@ recurseMap r f =
     Recurse r (f >> base)
 
 
-{-| Recurse on a value and then do an action immediately after.
+{-| Recurse on a value and then take another action on the result.
 
 If you find yourself writing code that looks like `recurse x |> andThen` you should
 consider using `recurseThen` instead as it will be much more efficient.
