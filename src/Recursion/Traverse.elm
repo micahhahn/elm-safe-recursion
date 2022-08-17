@@ -1,12 +1,12 @@
 module Recursion.Traverse exposing
-    ( traverseList, sequenceList
-    , traverseDict, sequenceDict
-    , traverseMaybe, sequenceMaybe
-    , traverseResult, sequenceResult
-    , traverseArray, sequenceArray
+    ( sequenceList, traverseList
+    , sequenceDict, traverseDict
+    , sequenceArray, traverseArray
+    , sequenceMaybe, traverseMaybe
+    , sequenceResult, traverseResult
     )
 
-{-| This module provides traversals for common data structures with the `Rec` type.
+{-| This module provides traversals for common data structures that contain recursive types.
 
 
 ### What is a traversal?
@@ -19,115 +19,145 @@ If you are trying to write a map function over a recursive data structure, a tra
 
 ## List
 
-@docs traverseList, sequenceList
+@docs sequenceList, traverseList
 
 
 ## Dict
 
-@docs traverseDict, sequenceDict
-
-
-## Maybe
-
-@docs traverseMaybe, sequenceMaybe
-
-
-## Result
-
-@docs traverseResult, sequenceResult
+@docs sequenceDict, traverseDict
 
 
 ## Array
 
-@docs traverseArray, sequenceArray
+@docs sequenceArray, traverseArray
+
+
+## Maybe
+
+@docs sequenceMaybe, traverseMaybe
+
+
+## Result
+
+@docs sequenceResult, traverseResult
 
 -}
 
 import Array exposing (Array)
 import Dict exposing (Dict)
 import Recursion exposing (..)
-import Recursion.Fold exposing (foldrList)
+import Recursion.Fold exposing (..)
 
 
-{-| Traverse a list of recursive data types.
-
-    type KeyedRoseTree a
-        = Leaf a
-        | Node (List ( String, KeyedRoseTree a ))
-
-    mapKeyedRoseTree : (a -> b) -> KeyedRoseTree a -> KeyedRoseTree b
-    mapKeyedRoseTree f =
-        runRecursion <|
-            \tree ->
-                case tree of
-                    Leaf a ->
-                        base <| Leaf (f a)
-
-                    Node nodes ->
-                        nodes
-                            |> traverseList
-                                (\( key, node ) ->
-                                    recurse node |> map (Tuple.pair key)
-                                )
-                            |> map Node
-
--}
-traverseList : (x -> Rec a b c) -> List x -> Rec a b (List c)
-traverseList project list =
-    foldrList project (::) [] list
-
-
-{-| A specialization of `traverseList` when each element of the list is directly recursive.
-
-`sequenceList = traverseList recurse`
+{-| Traverse a list where the elements are recursive types.
 
     type RoseTree a
-        = Leaf a
-        | Node (List (RoseTree a))
+        = Node a (List (RoseTree a))
 
     mapRoseTree : (a -> b) -> RoseTree a -> RoseTree b
     mapRoseTree f =
         runRecursion <|
+            \(Node a nodes) ->
+                sequenceList nodes
+                    |> map (Node (f a))
+
+-}
+sequenceList : List r -> Rec r t (List t)
+sequenceList items =
+    foldList (::) [] (List.reverse items)
+
+
+{-| Traverse a list where the elements contain recursive types.
+
+    type KeyedRoseTree a
+        = Node a (List ( String, KeyedRoseTree a ))
+
+    mapKeyedRoseTree : (a -> b) -> KeyedRoseTree a -> KeyedRoseTree b
+    mapKeyedRoseTree f =
+        runRecursion <|
+            \(Node a nodes) ->
+                traverseList (\( s, tree ) -> recurseMap tree (Tuple.pair s)) nodes
+                    |> map (Node (f a))
+
+-}
+traverseList : (x -> Rec r t a) -> List x -> Rec r t (List a)
+traverseList project items =
+    foldMapList (\x cs -> project x |> map (\c -> c :: cs)) [] (List.reverse items)
+
+
+{-| Traverse a `Dict` where the values are recursive types.
+
+    type HashTrie a
+        = Leaf a
+        | Node (Dict Char (HashTrie a))
+
+    mapHashTrie : (a -> b) -> HashTrie a -> HashTrie b
+    mapHashTrie f =
+        runRecursion <|
             \tree ->
                 case tree of
                     Leaf a ->
-                        base <| Leaf (f a)
+                        base (Leaf (f a))
 
-                    Node nodes ->
-                        nodes
-                            |> sequenceList
+                    Node dict ->
+                        sequenceDict dict
                             |> map Node
 
 -}
-sequenceList : List a -> Rec a b (List b)
-sequenceList =
-    traverseList recurse
-
-
-{-| Traverse over a `Dict` where the values contain an recursive type.
--}
-traverseDict : (v -> Rec a b c) -> Dict comparable v -> Rec a b (Dict comparable c)
-traverseDict project dict =
-    Dict.toList dict
-        |> traverseList
-            (\( k, v ) ->
-                project v
-                    |> map (Tuple.pair k)
-            )
+sequenceDict : Dict comparable r -> Rec r t (Dict comparable t)
+sequenceDict dict =
+    foldDict (\k v cs -> ( k, v ) :: cs) [] dict
         |> map Dict.fromList
 
 
-{-| Sequence a `Dict` where the values directly are recursive types.
+{-| Traverse a `Dict` where the values contain recursive types.
+-}
+traverseDict : (comparable -> v -> Rec r t a) -> Dict comparable v -> Rec r t (Dict comparable a)
+traverseDict project dict =
+    foldMapDict (\k v cs -> project k v |> map (\c -> ( k, c ) :: cs)) [] dict
+        |> map Dict.fromList
 
-`sequenceDict = traverseDict recurse`
+
+{-| Traverse an `Array` where the values are recursive types.
+-}
+sequenceArray : Array r -> Rec r t (Array t)
+sequenceArray items =
+    sequenceList (Array.toList items)
+        |> map Array.fromList
+
+
+{-| Traverse an `Array` where the values contain recursive types.
+-}
+traverseArray : (x -> Rec r t a) -> Array x -> Rec r t (Array a)
+traverseArray project items =
+    traverseList project (Array.toList items)
+        |> map Array.fromList
+
+
+{-| Traverse a `Maybe` where the value might be a recursive type.
+
+    type NonEmpty a
+        = NonEmpty a (Maybe (NonEmpty a))
+
+    mapNonEmpty : (a -> b) -> NonEmpty a -> NonEmpty b
+    mapNonEmpty f =
+        runRecursion <|
+            \(NonEmpty v maybe) ->
+                sequenceMaybe maybe
+                    |> map (NonEmpty (f v))
 
 -}
-sequenceDict : Dict comparable v -> Rec v b (Dict comparable b)
-sequenceDict =
-    traverseDict recurse
+sequenceMaybe : Maybe r -> Rec r t (Maybe t)
+sequenceMaybe maybe =
+    case maybe of
+        Nothing ->
+            base Nothing
+
+        Just a ->
+            recurseThen a (Just >> base)
 
 
-{-| Traverse a maybe containing a recursive data type.
+{-| Traverse a `Maybe` where the value might contain a recursive type.
 
     type SeparatedList sep val
         = SeparatedList val (Maybe ( sep, SeparatedList sep val ))
@@ -137,113 +167,39 @@ sequenceDict =
         runRecursion <|
             \(SeparatedList a maybeOthers) ->
                 maybeOthers
-                    |> traverseMaybe (\( sep, sepList ) -> recurse sepList |> map (Tuple.pair sep))
+                    |> traverseMaybe (\( sep, sepList ) -> recurseMap sepList (Tuple.pair sep))
                     |> map (SeparatedList (f a))
 
 -}
-traverseMaybe : (x -> Rec a b c) -> Maybe x -> Rec a b (Maybe c)
-traverseMaybe f maybe =
+traverseMaybe : (x -> Rec r t a) -> Maybe x -> Rec r t (Maybe a)
+traverseMaybe project maybe =
     case maybe of
         Nothing ->
             base Nothing
 
-        Just x ->
-            f x |> map Just
+        Just c ->
+            project c |> map Just
 
 
-{-| A specialization of `traverseMaybe` for when the `Maybe` type is directly recursive.
-
-`sequenceMaybe = traverseMaybe recurse`
-
-    type NonEmpty a
-        = NonEmpty a (Maybe (NonEmpty a))
-
-    mapNonEmpty : (a -> b) -> NonEmpty a -> NonEmpty b
-    mapNonEmpty f =
-        runRecursion <|
-            \(NonEmpty a maybe) ->
-                maybe
-                    |> sequenceMaybe
-                    |> map (NonEmpty (f a))
-
+{-| Traverse a `Result` where the success value might be a recursive type.
 -}
-sequenceMaybe : Maybe a -> Rec a b (Maybe b)
-sequenceMaybe =
-    traverseMaybe recurse
-
-
-{-| Traverse over a `Result` where the success value can contain a recursive type.
--}
-traverseResult : (value -> Rec a b c) -> Result error value -> Rec a b (Result error c)
-traverseResult f result =
+sequenceResult : Result e r -> Rec r t (Result e t)
+sequenceResult result =
     case result of
-        Err e ->
-            base (Err e)
+        Err err ->
+            base (Err err)
 
-        Ok v ->
-            f v |> map Ok
+        Ok a ->
+            recurseThen a (Ok >> base)
 
 
-{-| Sequence a `Result` where the success value directly is a recursive type.
-
-`sequenceResult = traverseResult recurse`
-
+{-| Traverse a `Result` where the success value might contain a recursive type.
 -}
-sequenceResult : Result error value -> Rec value b (Result error b)
-sequenceResult =
-    traverseResult recurse
+traverseResult : (v -> Rec r t a) -> Result e v -> Rec r t (Result e a)
+traverseResult project result =
+    case result of
+        Err err ->
+            base (Err err)
 
-
-{-| Traverse an array of recursive data types.
-
-    type KeyedRoseTree a
-        = Leaf a
-        | Node (Array ( String, KeyedRoseTree a ))
-
-    mapKeyedRoseTree : (a -> b) -> KeyedRoseTree a -> KeyedRoseTree b
-    mapKeyedRoseTree f =
-        runRecursion <|
-            \tree ->
-                case tree of
-                    Leaf a ->
-                        base <| Leaf (f a)
-
-                    Node nodes ->
-                        nodes
-                            |> traverseArray
-                                (\( key, node ) ->
-                                    recurse node |> map (Tuple.pair key)
-                                )
-                            |> map Node
-
--}
-traverseArray : (x -> Rec a b c) -> Array x -> Rec a b (Array c)
-traverseArray f =
-    Array.toList >> traverseList f >> map Array.fromList
-
-
-{-| A specialization of `traverseArray` when each element of the list is directly recursive.
-
-`sequenceArray = traverseArray recurse`
-
-    type RoseTree a
-        = Leaf a
-        | Node (Array (RoseTree a))
-
-    mapRoseTree : (a -> b) -> RoseTree a -> RoseTree b
-    mapRoseTree f =
-        runRecursion <|
-            \tree ->
-                case tree of
-                    Leaf a ->
-                        base <| Leaf (f a)
-
-                    Node nodes ->
-                        nodes
-                            |> sequenceArray
-                            |> map Node
-
--}
-sequenceArray : Array a -> Rec a b (Array b)
-sequenceArray =
-    traverseArray recurse
+        Ok c ->
+            project c |> map Ok

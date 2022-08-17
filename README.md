@@ -23,11 +23,11 @@ mapTree f initTree =
                 base <| Leaf (f a)
 
             Node l r -> 
-                recurse l |> andThen (\newL -> recurse r |> andThen (\newR -> base <| Node newL newR))
+                recurseThen l (\newL -> recurseMap r (\newR -> Node newL newR))
     ) initTree
 ```
 
-For more on the types and functions involved and details on how this works check out the [`Recursion`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion/) module.
+For more on the types and functions involved and details on how this works check out the [`Recursion.Monad`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Monad/) module.
 
 This module pairs extremely well with the elm-review rule [`NoUnoptimizedRecursion`](https://package.elm-lang.org/packages/jfmengels/elm-review-performance/latest/NoUnoptimizedRecursion).
 
