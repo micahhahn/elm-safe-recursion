@@ -1,6 +1,6 @@
 module Recursion exposing
     ( Rec
-    , base, recurse, recurseThen
+    , base, recurse, recurseMap, recurseThen
     , map, andThen
     , runRecursion
     )
@@ -26,7 +26,7 @@ you to preserve the recursive elegance that makes functional programming beautif
 
 ## Creating a `Rec`
 
-@docs base, recurse, recurseThen
+@docs base, recurse, recurseMap, recurseThen
 
 
 ## Manipulating a `Rec`
@@ -81,9 +81,9 @@ We are exposing ourselves to a crash if the tree is deep enough that we would ha
                     Node l r ->
                         recurseThen l
                             (\newL ->
-                                recurseThen r
+                                recurseMap r
                                     (\newR ->
-                                        base (Node newL newR)
+                                        Node newL newR
                                     )
                             )
             )
@@ -125,9 +125,20 @@ recurse r =
     Recurse r base
 
 
+{-| Recurse on a value and then map immediately after.
+
+If you find yourself writing code looks like `recurse x |> map` you should consider using `recurseMap` instead
+as it will be much more efficient.
+
+-}
+recurseMap : r -> (t -> a) -> Rec r t a
+recurseMap r f =
+    Recurse r (f >> base)
+
+
 {-| Recurse on a value and then do an action immediately after.
 
-If you find yourself writing code that looks like `recurse x |> andThen` or `recurse x |> map` you should
+If you find yourself writing code that looks like `recurse x |> andThen` you should
 consider using `recurseThen` instead as it will be much more efficient.
 
 -}
