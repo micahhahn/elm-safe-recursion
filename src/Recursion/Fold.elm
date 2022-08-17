@@ -36,32 +36,85 @@ import Set exposing (Set)
 
 
 {-| Fold a list of items which are recursive types.
+
+    type RoseTree a
+        = Leaf a
+        | Node (List (RoseTree a))
+
+    countRoseTreeLeaves : RoseTree a -> Int
+    countRoseTreeLeaves =
+        runRecursion
+            (\tree ->
+                case tree of
+                    Leaf _ ->
+                        base 1
+
+                    Node trees ->
+                        foldList (+) 0 trees
+            )
+
 -}
-foldList : (b -> c -> c) -> c -> List a -> Rec a b c
+foldList : (t -> a -> a) -> a -> List r -> Rec r t a
 foldList fold accum items =
     case items of
         [] ->
             base accum
 
         item :: rest ->
-            recurseThen item (\b -> foldList fold (fold b accum) rest)
+            recurseThen item (\t -> foldList fold (fold t accum) rest)
 
 
 {-| Fold a list of items which contain recursive types.
+
+    type KeyedRoseTree a
+        = Leaf a
+        | Node (List ( String, KeyedRoseTree a ))
+
+    countRoseTreeLeaves : KeyedRoseTree a -> Int
+    countRoseTreeLeaves =
+        runRecursion
+            (\tree ->
+                case tree of
+                    Leaf _ ->
+                        base 1
+
+                    Node trees ->
+                        foldMapList
+                            (\( _, rec ) count -> recurseMap rec ((+) count))
+                            0
+                            trees
+            )
+
 -}
-foldMapList : (x -> c -> Rec a b c) -> c -> List x -> Rec a b c
+foldMapList : (x -> a -> Rec r t a) -> a -> List x -> Rec r t a
 foldMapList foldMap accum items =
     case items of
         [] ->
             base accum
 
         item :: rest ->
-            foldMap item accum |> andThen (\c -> foldMapList foldMap c rest)
+            foldMap item accum |> andThen (\a -> foldMapList foldMap a rest)
 
 
 {-| Fold a `Dict` whose values are recursive types.
+
+    type HashTrie a
+        = Leaf a
+        | Node (Dict Char (HashTrie a))
+
+    countHashTrie : HashTrie a -> Int
+    countHashTrie =
+        runRecursion <|
+            \tree ->
+                case tree of
+                    Leaf _ ->
+                        base 1
+
+                    Node trees ->
+                        foldDict (\_ x count -> x + count) 0 trees
+
 -}
-foldDict : (comparable -> b -> c -> c) -> c -> Dict comparable a -> Rec a b c
+foldDict : (comparable -> t -> a -> a) -> a -> Dict comparable r -> Rec r t a
 foldDict fold init dict =
     let
         go todo accum =
@@ -76,8 +129,24 @@ foldDict fold init dict =
 
 
 {-| Fold a `Dict` whose values contain recursive types.
+
+    type HashTrie a
+        = Leaf a
+        | Node (Dict Char ( Int, HashTrie a ))
+
+    countHashTrie : HashTrie a -> Int
+    countHashTrie =
+        runRecursion <|
+            \tree ->
+                case tree of
+                    Leaf _ ->
+                        base 1
+
+                    Node trees ->
+                        foldMapDict (\_ ( _, v ) count -> recurseMap v (\x -> x + count)) 0 trees
+
 -}
-foldMapDict : (comparable -> v -> c -> Rec a b c) -> c -> Dict comparable v -> Rec a b c
+foldMapDict : (comparable -> v -> a -> Rec r t a) -> a -> Dict comparable v -> Rec r t a
 foldMapDict foldMap init dict =
     let
         go todo accum =
@@ -93,27 +162,27 @@ foldMapDict foldMap init dict =
 
 {-| Fold an `Array` whose items are recursive types.
 -}
-foldArray : (b -> c -> c) -> c -> Array a -> Rec a b c
+foldArray : (t -> a -> a) -> a -> Array r -> Rec r t a
 foldArray fold accum items =
     foldList fold accum (Array.toList items)
 
 
 {-| Fold an `Array` whose items contain recursive types.
 -}
-foldMapArray : (x -> c -> Rec a b c) -> c -> Array x -> Rec a b c
+foldMapArray : (x -> a -> Rec r t a) -> a -> Array x -> Rec r t a
 foldMapArray foldMap accum items =
     foldMapList foldMap accum (Array.toList items)
 
 
 {-| Fold an `Set` whose items are recursive types.
 -}
-foldSet : (b -> c -> c) -> c -> Set a -> Rec a b c
+foldSet : (t -> a -> a) -> a -> Set r -> Rec r t a
 foldSet fold accum items =
     foldList fold accum (Set.toList items)
 
 
 {-| Fold an `Set` whose items contain recursive types.
 -}
-foldMapSet : (x -> c -> Rec a b c) -> c -> Set x -> Rec a b c
+foldMapSet : (x -> a -> Rec r t a) -> a -> Set x -> Rec r t a
 foldMapSet foldMap accum items =
     foldMapList foldMap accum (Set.toList items)
