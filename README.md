@@ -23,7 +23,7 @@ mapTree f initTree =
                 base <| Leaf (f a)
 
             Node l r -> 
-                recurse l |> andThen (\newL -> recurse r |> andThen (\newR -> base <| Node newL newR))
+                recurseThen l (\newL -> recurseMap r (\newR -> Node newL newR))
     ) initTree
 ```
 
