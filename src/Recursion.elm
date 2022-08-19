@@ -136,7 +136,7 @@ as it will be much more efficient.
 -}
 recurseMap : r -> (t -> a) -> Rec r t a
 recurseMap r f =
-    Recurse r (f >> base)
+    Recurse r (f >> Base)
 
 
 {-| Recurse on a value and then take another action on the result.
