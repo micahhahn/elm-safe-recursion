@@ -82,7 +82,16 @@ sequenceList items =
 -}
 traverseList : (x -> Rec r t a) -> List x -> Rec r t (List a)
 traverseList project items =
-    foldMapList (\x cs -> project x |> map (\c -> c :: cs)) [] (List.reverse items)
+    let
+        go accum todo =
+            case todo of
+                [] ->
+                    base <| List.reverse accum
+
+                item :: rest ->
+                    project item |> andThen (\a -> go (a :: accum) rest)
+    in
+    go [] items
 
 
 {-| Traverse a `Dict` where the values are recursive types.
@@ -114,8 +123,16 @@ sequenceDict dict =
 -}
 traverseDict : (comparable -> v -> Rec r t a) -> Dict comparable v -> Rec r t (Dict comparable a)
 traverseDict project dict =
-    foldMapDict (\k v cs -> project k v |> map (\c -> ( k, c ) :: cs)) [] dict
-        |> map Dict.fromList
+    let
+        go accum todo =
+            case todo of
+                [] ->
+                    base (Dict.fromList accum)
+
+                ( key, value ) :: rest ->
+                    project key value |> andThen (\a -> go (( key, a ) :: accum) rest)
+    in
+    go [] (Dict.toList dict)
 
 
 {-| Traverse an `Array` where the values are recursive types.
@@ -130,8 +147,16 @@ sequenceArray items =
 -}
 traverseArray : (x -> Rec r t a) -> Array x -> Rec r t (Array a)
 traverseArray project items =
-    traverseList project (Array.toList items)
-        |> map Array.fromList
+    let
+        go accum todo =
+            case todo of
+                [] ->
+                    base (Array.fromList accum)
+
+                item :: rest ->
+                    project item |> andThen (\a -> go (a :: accum) rest)
+    in
+    go [] (Array.toList items)
 
 
 {-| Traverse a `Maybe` where the value might be a recursive type.
