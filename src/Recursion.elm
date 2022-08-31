@@ -1,6 +1,6 @@
 module Recursion exposing
     ( Rec
-    , base, recurse, recurseMap, recurseThen
+    , base, recurse, recurseThen
     , map, andThen
     , runRecursion
     )
@@ -126,18 +126,6 @@ When the recursion is complete this will contain a value of type `t`.
 recurse : r -> Rec r t t
 recurse r =
     Recurse r base
-
-
-{-| Recurse on a value and then map over the result.
-
-If you find yourself writing code looks like `recurse x |> map` you should consider using `recurseMap` instead
-as it will be much more efficient.
-
--}
-recurseMap : r -> (t -> a) -> Rec r t a
-recurseMap r f =
-    Recurse r (f >> Base)
-
 
 {-| Recurse on a value and then take another action on the result.
 
