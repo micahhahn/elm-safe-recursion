@@ -1,4 +1,4 @@
-module RecursionTest exposing (..)
+module RecursionTest exposing (suite)
 
 import Expect
 import Recursion exposing (..)

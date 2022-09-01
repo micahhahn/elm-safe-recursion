@@ -27,7 +27,7 @@ mapTree f initTree =
     ) initTree
 ```
 
-For more on the types and functions involved and details on how this works check out the [`Recursion.Monad`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Monad/) module.
+For more on the types and functions involved and details on how this works check out the [`Recursion`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion/) module.
 
 This module pairs extremely well with the elm-review rule [`NoUnoptimizedRecursion`](https://package.elm-lang.org/packages/jfmengels/elm-review-performance/latest/NoUnoptimizedRecursion).
 

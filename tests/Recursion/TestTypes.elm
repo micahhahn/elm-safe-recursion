@@ -1,4 +1,4 @@
-module Recursion.TestTypes exposing (..)
+module Recursion.TestTypes exposing (ArrayTree(..), DictTree(..), ListTree(..), MaybeTree(..), ResultTree(..), hugeArrayTree, hugeDictTree, hugeListTree, hugeSize)
 
 import Array exposing (Array)
 import Dict exposing (Dict)

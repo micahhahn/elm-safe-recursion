@@ -93,6 +93,7 @@ foldMapArrayThenCount =
             foldMapArrayThen (\x accum -> recurseThen x ((+) accum >> base)) 1 array base
 
 
+expectedHugeSize : Int
 expectedHugeSize =
     hugeSize + 1
 

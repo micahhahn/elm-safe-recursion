@@ -1,7 +1,7 @@
 module Recursion.TraverseTest exposing (suite)
 
-import Array exposing (Array)
-import Dict exposing (Dict)
+import Array
+import Dict
 import Expect exposing (Expectation)
 import Recursion exposing (..)
 import Recursion.TestTypes exposing (..)
