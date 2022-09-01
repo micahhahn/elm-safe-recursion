@@ -32,7 +32,6 @@ module Recursion.Fold exposing
 import Array exposing (Array)
 import Dict exposing (Dict)
 import Recursion exposing (..)
-import Set exposing (Set)
 
 
 {-| Fold a list of items which are recursive types.

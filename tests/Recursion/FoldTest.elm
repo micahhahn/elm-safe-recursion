@@ -1,7 +1,7 @@
 module Recursion.FoldTest exposing (suite)
 
-import Array exposing (Array)
-import Dict exposing (Dict)
+import Array
+import Dict
 import Expect
 import Recursion exposing (..)
 import Recursion.Fold exposing (..)
@@ -93,98 +93,54 @@ foldMapArrayThenCount =
             foldMapArrayThen (\x accum -> recurseThen x ((+) accum >> base)) 1 array base
 
 
+expectedHugeSize =
+    hugeSize + 1
+
+
 safetyTests : Test
 safetyTests =
     describe "Safety Tests"
         [ describe "List"
             [ test "foldList doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldListCount hugeListTree
-                    in
-                    Expect.pass
+                    foldListCount hugeListTree |> Expect.equal expectedHugeSize
             , test "foldListThen doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldListThenCount hugeListTree
-                    in
-                    Expect.pass
+                    foldListThenCount hugeListTree |> Expect.equal expectedHugeSize
             , test "foldMapList doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldMapListCount hugeListTree
-                    in
-                    Expect.pass
+                    foldMapListCount hugeListTree |> Expect.equal expectedHugeSize
             , test "foldMapListThen doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldMapListThenCount hugeListTree
-                    in
-                    Expect.pass
+                    foldMapListThenCount hugeListTree |> Expect.equal expectedHugeSize
             ]
         , describe "Dict"
             [ test "foldDict doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldDictCount hugeDictTree
-                    in
-                    Expect.pass
+                    foldDictCount hugeDictTree |> Expect.equal expectedHugeSize
             , test "foldDictThen doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldDictThenCount hugeDictTree
-                    in
-                    Expect.pass
+                    foldDictThenCount hugeDictTree |> Expect.equal expectedHugeSize
             , test "foldMapDict doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldMapDictCount hugeDictTree
-                    in
-                    Expect.pass
+                    foldMapDictCount hugeDictTree |> Expect.equal expectedHugeSize
             , test "foldMapDictThen doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldMapDictThenCount hugeDictTree
-                    in
-                    Expect.pass
+                    foldMapDictThenCount hugeDictTree |> Expect.equal expectedHugeSize
             ]
         , describe "Array"
             [ test "foldArray doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldArrayCount hugeArrayTree
-                    in
-                    Expect.pass
+                    foldArrayCount hugeArrayTree |> Expect.equal expectedHugeSize
             , test "foldArrayThen doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldArrayThenCount hugeArrayTree
-                    in
-                    Expect.pass
+                    foldArrayThenCount hugeArrayTree |> Expect.equal expectedHugeSize
             , test "foldMapArray doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldMapArrayCount hugeArrayTree
-                    in
-                    Expect.pass
+                    foldMapArrayCount hugeArrayTree |> Expect.equal expectedHugeSize
             , test "foldMapArrayThen doesn't overflow" <|
                 \_ ->
-                    let
-                        _ =
-                            foldMapArrayThenCount hugeArrayTree
-                    in
-                    Expect.pass
+                    foldMapArrayThenCount hugeArrayTree |> Expect.equal expectedHugeSize
             ]
         ]
 

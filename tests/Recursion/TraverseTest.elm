@@ -2,7 +2,7 @@ module Recursion.TraverseTest exposing (suite)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
-import Expect
+import Expect exposing (Expectation)
 import Recursion exposing (..)
 import Recursion.TestTypes exposing (..)
 import Recursion.Traverse exposing (..)
@@ -149,98 +149,41 @@ traverseResultThenMap f =
             traverseResultThen recurse array (ResultNode (f val) >> base)
 
 
+listTreeExists : ListTree a -> Expectation
+listTreeExists _ =
+    Expect.pass
+
+
+dictTreeExists : DictTree a -> Expectation
+dictTreeExists _ =
+    Expect.pass
+
+
+arrayTreeExists : ArrayTree a -> Expectation
+arrayTreeExists _ =
+    Expect.pass
+
+
 stackSafetyTests : Test
 stackSafetyTests =
     describe "Stack Safety Tests"
         [ describe "List"
-            [ test "sequenceList doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            sequenceListMap ((+) 1) hugeListTree
-                    in
-                    Expect.pass
-            , test "sequenceListThen doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            sequenceListThenMap ((+) 1) hugeListTree
-                    in
-                    Expect.pass
-            , test "traverseList doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            traverseListMap ((+) 1) hugeListTree
-                    in
-                    Expect.pass
-            , test "traverseListThen doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            traverseListThenMap ((+) 1) hugeListTree
-                    in
-                    Expect.pass
+            [ test "sequenceList doesn't overflow" <| \_ -> sequenceListMap ((+) 1) hugeListTree |> listTreeExists
+            , test "sequenceListThen doesn't overflow" <| \_ -> sequenceListThenMap ((+) 1) hugeListTree |> listTreeExists
+            , test "traverseList doesn't overflow" <| \_ -> traverseListMap ((+) 1) hugeListTree |> listTreeExists
+            , test "traverseListThen doesn't overflow" <| \_ -> traverseListThenMap ((+) 1) hugeListTree |> listTreeExists
             ]
         , describe "Dict"
-            [ test "sequenceDict doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            sequenceDictMap ((+) 1) hugeDictTree
-                    in
-                    Expect.pass
-            , test "sequenceDictThen doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            sequenceDictThenMap ((+) 1) hugeDictTree
-                    in
-                    Expect.pass
-            , test "traverseDict doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            traverseDictMap ((+) 1) hugeDictTree
-                    in
-                    Expect.pass
-            , test "traverseDictThen doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            traverseDictThenMap ((+) 1) hugeDictTree
-                    in
-                    Expect.pass
+            [ test "sequenceDict doesn't overflow" <| \_ -> sequenceDictMap ((+) 1) hugeDictTree |> dictTreeExists
+            , test "sequenceDictThen doesn't overflow" <| \_ -> sequenceDictThenMap ((+) 1) hugeDictTree |> dictTreeExists
+            , test "traverseDict doesn't overflow" <| \_ -> traverseDictMap ((+) 1) hugeDictTree |> dictTreeExists
+            , test "traverseDictThen doesn't overflow" <| \_ -> traverseDictThenMap ((+) 1) hugeDictTree |> dictTreeExists
             ]
         , describe "Array"
-            [ test "sequenceArray doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            sequenceArrayMap ((+) 1) hugeArrayTree
-                    in
-                    Expect.pass
-            , test "sequenceArrayThen doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            sequenceArrayThenMap ((+) 1) hugeArrayTree
-                    in
-                    Expect.pass
-            , test "traverseArray doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            traverseArrayMap ((+) 1) hugeArrayTree
-                    in
-                    Expect.pass
-            , test "traverseArrayThen doesn't overflow" <|
-                \_ ->
-                    let
-                        _ =
-                            traverseArrayThenMap ((+) 1) hugeArrayTree
-                    in
-                    Expect.pass
+            [ test "sequenceArray doesn't overflow" <| \_ -> sequenceArrayMap ((+) 1) hugeArrayTree |> arrayTreeExists
+            , test "sequenceArrayThen doesn't overflow" <| \_ -> sequenceArrayThenMap ((+) 1) hugeArrayTree |> arrayTreeExists
+            , test "traverseArray doesn't overflow" <| \_ -> traverseArrayMap ((+) 1) hugeArrayTree |> arrayTreeExists
+            , test "traverseArrayThen doesn't overflow" <| \_ -> traverseArrayThenMap ((+) 1) hugeArrayTree |> arrayTreeExists
             ]
         ]
 
