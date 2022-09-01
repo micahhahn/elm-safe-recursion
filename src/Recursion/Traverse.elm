@@ -13,6 +13,8 @@ module Recursion.Traverse exposing
 
 {-| This module provides traversals for common data structures that contain recursive types.
 
+Prefer to use the functions that accept a continuation when possible (`sequence____Then` or `traverse____Then`) as they will be more efficient than folding and then mapping after.
+
 
 ### What is a traversal?
 
@@ -22,31 +24,31 @@ In this module, the traversal functions allow us to convert from a structure con
 If you are trying to write a map function over a recursive data structure, a traversal is likely what you want.
 
 
-## List
+# List
 
 @docs sequenceList, sequenceListThen
 @docs traverseList, traverseListThen
 
 
-## Dict
+# Dict
 
 @docs sequenceDict, sequenceDictThen
 @docs traverseDict, traverseDictThen
 
 
-## Array
+# Array
 
 @docs sequenceArray, sequenceArrayThen
 @docs traverseArray, traverseArrayThen
 
 
-## Maybe
+# Maybe
 
 @docs sequenceMaybe, sequenceMaybeThen
 @docs traverseMaybe, traverseMaybeThen
 
 
-## Result
+# Result
 
 @docs sequenceResult, sequenceResultThen
 @docs traverseResult, traverseResultThen
