@@ -5,8 +5,6 @@ module Recursion.Fold exposing
     , foldMapDict, foldMapDictThen
     , foldArray, foldArrayThen
     , foldMapArray, foldMapArrayThen
-    , foldSet, foldSetThen
-    , foldMapSet, foldMapSetThen
     )
 
 {-| This module contains functions for folding common collections types that can contain recursive data structures.
@@ -28,12 +26,6 @@ module Recursion.Fold exposing
 
 @docs foldArray, foldArrayThen
 @docs foldMapArray, foldMapArrayThen
-
-
-## Set
-
-@docs foldSet, foldSetThen
-@docs foldMapSet, foldMapSetThen
 
 -}
 
