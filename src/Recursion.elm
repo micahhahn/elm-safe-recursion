@@ -125,6 +125,7 @@ recurse : r -> Rec r t t
 recurse r =
     Recurse r base
 
+
 {-| Recurse on a value and then take another action on the result.
 
 If you find yourself writing code that looks like `recurse x |> andThen ...` or `recurse x |> map ...` you should
@@ -134,6 +135,7 @@ consider using `recurseThen` instead as it will be much more efficient.
 recurseThen : r -> (t -> Rec r t a) -> Rec r t a
 recurseThen =
     Recurse
+
 
 {-| Apply a function to the result of a `Rec` computation.
 -}

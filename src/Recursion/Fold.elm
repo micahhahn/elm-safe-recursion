@@ -65,6 +65,7 @@ foldList : (t -> a -> a) -> a -> List r -> Rec r t a
 foldList fold accum items =
     foldListThen fold accum items base
 
+
 {-| Fold a list of items which are recurisve types and then perform a recursive action with the result.
 -}
 foldListThen : (t -> a -> a) -> a -> List r -> (a -> Rec r t b) -> Rec r t b
@@ -102,8 +103,8 @@ foldMapList : (x -> a -> Rec r t a) -> a -> List x -> Rec r t a
 foldMapList foldMap accum items =
     foldMapListThen foldMap accum items base
 
-{-| Fold a list of items which contain recursive types and then perform a recursive action with the result.
 
+{-| Fold a list of items which contain recursive types and then perform a recursive action with the result.
 -}
 foldMapListThen : (x -> a -> Rec r t a) -> a -> List x -> (a -> Rec r t b) -> Rec r t b
 foldMapListThen foldMap accum items after =
@@ -136,6 +137,7 @@ foldMapListThen foldMap accum items after =
 foldDict : (comparable -> t -> a -> a) -> a -> Dict comparable r -> Rec r t a
 foldDict fold init dict =
     foldDictThen fold init dict base
+
 
 {-| Fold a `Dict` whose values are recursive types and then perform a recursive action with the result.
 -}
@@ -186,7 +188,6 @@ foldMapDict foldMap init dict =
 
 
 {-| Fold a `Dict` whose values contain recursive types and then perform a recursive action with the result.
-
 -}
 foldMapDictThen : (comparable -> v -> a -> Rec r t a) -> a -> Dict comparable v -> (a -> Rec r t b) -> Rec r t b
 foldMapDictThen foldMap init dict after =
@@ -222,6 +223,7 @@ foldMapArray : (x -> a -> Rec r t a) -> a -> Array x -> Rec r t a
 foldMapArray foldMap accum items =
     foldMapList foldMap accum (Array.toList items)
 
+
 {-| Fold an `Array` whose items contain recursive types and then perform a recursive action with the result.
 -}
 foldMapArrayThen : (x -> a -> Rec r t a) -> a -> Array x -> Rec r t a
@@ -235,6 +237,7 @@ foldSet : (t -> a -> a) -> a -> Set r -> Rec r t a
 foldSet fold accum items =
     foldList fold accum (Set.toList items)
 
+
 {-| Fold an `Set` whose items are recursive types and then perform a recursive action with the result.
 -}
 foldSetThen : (t -> a -> a) -> a -> Set r -> (a -> Rec r t b) -> Rec r t b
@@ -247,6 +250,7 @@ foldSetThen fold accum items after =
 foldMapSet : (x -> a -> Rec r t a) -> a -> Set x -> Rec r t a
 foldMapSet foldMap accum items =
     foldMapList foldMap accum (Set.toList items)
+
 
 {-| Fold an `Set` whose items contain recursive types and then perform an action with the result.
 -}

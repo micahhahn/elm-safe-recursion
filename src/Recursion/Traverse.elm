@@ -21,6 +21,7 @@ In this module, the traversal functions allow us to convert from a structure con
 
 If you are trying to write a map function over a recursive data structure, a traversal is likely what you want.
 
+
 ## List
 
 @docs sequenceList, sequenceListThen
@@ -75,6 +76,7 @@ sequenceList : List r -> Rec r t (List t)
 sequenceList items =
     sequenceListThen items base
 
+
 {-| Traverse a list where the elements are recursive types and then perform a recursive action on the result.
 -}
 sequenceListThen : List r -> (List t -> Rec r t a) -> Rec r t a
@@ -98,6 +100,7 @@ sequenceListThen items after =
 traverseList : (x -> Rec r t a) -> List x -> Rec r t (List a)
 traverseList project items =
     traverseListThen project items base
+
 
 {-| Traverse a list where the elements contain recursive types and then perform a recursive action on the result.
 -}
@@ -138,6 +141,7 @@ sequenceDict : Dict comparable r -> Rec r t (Dict comparable t)
 sequenceDict dict =
     sequenceDictThen dict base
 
+
 {-| Traverse a `Dict` where the values are recursive types and then perform a recursive action on the result.
 -}
 sequenceDictThen : Dict comparable r -> (Dict comparable t -> Rec r t a) -> Rec r t a
@@ -159,6 +163,7 @@ sequenceDictThen dict after =
 traverseDict : (comparable -> v -> Rec r t a) -> Dict comparable v -> Rec r t (Dict comparable a)
 traverseDict project dict =
     traverseDictThen project dict base
+
 
 {-| Traverse a `Dict` where the values contain recursive types and then perform a recursive action the result.
 -}
@@ -182,6 +187,7 @@ sequenceArray : Array r -> Rec r t (Array t)
 sequenceArray items =
     sequenceArrayThen items base
 
+
 {-| Traverse an `Array` where the values are recursive types and then perform a recursive action on the result.
 -}
 sequenceArrayThen : Array r -> (Array t -> Rec r t a) -> Rec r t a
@@ -194,6 +200,7 @@ sequenceArrayThen items after =
 traverseArray : (x -> Rec r t a) -> Array x -> Rec r t (Array a)
 traverseArray project items =
     traverseArrayThen project items base
+
 
 {-| Traverse an `Array` where the values contain recursive types and then perform a recursive action on the result.
 -}
@@ -219,16 +226,18 @@ sequenceMaybe : Maybe r -> Rec r t (Maybe t)
 sequenceMaybe maybe =
     sequenceMaybeThen maybe base
 
+
 {-| Traverse a `Maybe` where the value might be a recursive type and then perform a recursive action on the result.
 -}
 sequenceMaybeThen : Maybe r -> (Maybe t -> Rec r t a) -> Rec r t a
-sequenceMaybeThen maybe after = 
+sequenceMaybeThen maybe after =
     case maybe of
-        Nothing -> 
+        Nothing ->
             after Nothing
 
-        Just r -> 
+        Just r ->
             recurseThen r (Just >> after)
+
 
 {-| Traverse a `Maybe` where the value might contain a recursive type.
 
@@ -248,14 +257,18 @@ traverseMaybe : (x -> Rec r t a) -> Maybe x -> Rec r t (Maybe a)
 traverseMaybe project maybe =
     traverseMaybeThen project maybe base
 
+
 {-| Traverse a `Maybe` where the value might contain a recursive type and then perform a recursive action on the result.
 -}
 traverseMaybeThen : (x -> Rec r t a) -> Maybe x -> (Maybe a -> Rec r t b) -> Rec r t b
-traverseMaybeThen project maybe after = 
+traverseMaybeThen project maybe after =
     case maybe of
-        Nothing -> after Nothing
-        Just x -> 
+        Nothing ->
+            after Nothing
+
+        Just x ->
             project x |> andThen (Just >> after)
+
 
 {-| Traverse a `Result` where the success value might be a recursive type.
 -}
@@ -263,10 +276,11 @@ sequenceResult : Result e r -> Rec r t (Result e t)
 sequenceResult result =
     sequenceResultThen result base
 
+
 {-| Traverse a `Result` where the success value might be a recursive type and then perform an action on the recursive result.
 -}
 sequenceResultThen : Result e r -> (Result e t -> Rec r t a) -> Rec r t a
-sequenceResultThen result after = 
+sequenceResultThen result after =
     case result of
         Err err ->
             after (Err err)
@@ -285,6 +299,7 @@ traverseResult project result =
 
         Ok c ->
             project c |> map Ok
+
 
 {-| Traverse a `Result` where the success value might contain a recursive type and then perform an action on the recursive result.
 -}
