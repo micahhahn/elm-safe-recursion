@@ -33,8 +33,8 @@ you to preserve the recursive elegance that makes functional programming beautif
 
 @docs map, andThen
 
-Check out [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Traverse)
-and [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Fold)
+Check out [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Traverse)
+and [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Fold)
 for helpers that work with containers of recursive types.
 
 

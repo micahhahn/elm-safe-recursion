@@ -27,7 +27,7 @@ mapTree f initTree =
     ) initTree
 ```
 
-For more on the types and functions involved and details on how this works check out the [`Recursion`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion/) module.
+For more on the types and functions involved and details on how this works check out the [`Recursion`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion/) module.
 
 This module pairs extremely well with the elm-review rule [`NoUnoptimizedRecursion`](https://package.elm-lang.org/packages/jfmengels/elm-review-performance/latest/NoUnoptimizedRecursion).
 
@@ -49,4 +49,4 @@ Sure! But it's the same situation as above.
 
 This library is based on the excellent paper "Stackless Scala With Free Monads" by Bjarnason. Unfortunately, we don't have existentially quantified types in Elm so we can not directly implement the `Trampoline` monad from the paper as a dataype. 
 
-We instead had to choose a different representation that unfortunately does not allow us to "disallow the construction of deeply nested left binds". To mitigate the risk of a user accidentally creating a stack of left binds, we provide safe implementations of folds and traversals for common data structures in [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Fold/) and [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Traverse/).
+We instead had to choose a different representation that unfortunately does not allow us to "disallow the construction of deeply nested left binds". To mitigate the risk of a user accidentally creating a stack of left binds, we provide safe implementations of folds and traversals for common data structures in [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Fold/) and [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Traverse/).
