@@ -11,5 +11,6 @@ pkgs.mkShell {
     elmPackages.elm-doc-preview
     elmPackages.elm-json
     elmPackages.elm-review
+    elmPackages.elm-coverage
   ];
 }

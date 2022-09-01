@@ -1,6 +1,6 @@
 module Recursion exposing
     ( Rec
-    , base, recurse, recurseMap, recurseThen
+    , base, recurse, recurseThen
     , map, andThen
     , runRecursion
     )
@@ -26,7 +26,7 @@ you to preserve the recursive elegance that makes functional programming beautif
 
 ## Creating a `Rec`
 
-@docs base, recurse, recurseMap, recurseThen
+@docs base, recurse, recurseThen
 
 
 ## Manipulating a `Rec`
@@ -35,7 +35,7 @@ you to preserve the recursive elegance that makes functional programming beautif
 
 Check out [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Traverse)
 and [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/1.0.1/Recursion-Fold)
-for helpers that work with contains of recursive types.
+for helpers that work with containers of recursive types.
 
 
 ## Running a `Rec`
@@ -81,9 +81,9 @@ We are exposing ourselves to a crash if the tree is deep enough that we would ha
                     Node l r ->
                         recurseThen l
                             (\newL ->
-                                recurseMap r
+                                recurseThen r
                                     (\newR ->
-                                        Node newL newR
+                                        baes <| Node newL newR
                                     )
                             )
             )
@@ -103,8 +103,6 @@ result in a `Rec` value might not be available yet because it needs to recursive
 So instead of directly manipulating the value in a `Rec`, we instead can specify actions to be done with the value
 when it is available using `map` and `andThen`.
 
-`Rec` is a monad over type `a`.
-
 -}
 type Rec r t a
     = Base a
@@ -120,7 +118,7 @@ base =
 
 {-| Recurse on a value.
 
-When the recursion is complete this will contain a value of type `t`.
+When the recursion is complete the `Rec` will contain a value of type `t`.
 
 -}
 recurse : r -> Rec r t t
@@ -128,20 +126,9 @@ recurse r =
     Recurse r base
 
 
-{-| Recurse on a value and then map over the result.
-
-If you find yourself writing code looks like `recurse x |> map` you should consider using `recurseMap` instead
-as it will be much more efficient.
-
--}
-recurseMap : r -> (t -> a) -> Rec r t a
-recurseMap r f =
-    Recurse r (f >> base)
-
-
 {-| Recurse on a value and then take another action on the result.
 
-If you find yourself writing code that looks like `recurse x |> andThen` you should
+If you find yourself writing code that looks like `recurse x |> andThen ...` or `recurse x |> map ...` you should
 consider using `recurseThen` instead as it will be much more efficient.
 
 -}
