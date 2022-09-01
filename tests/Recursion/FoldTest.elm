@@ -1,5 +1,7 @@
 module Recursion.FoldTest exposing (suite)
 
+import Array exposing (Array)
+import Dict exposing (Dict)
 import Expect
 import Recursion exposing (..)
 import Recursion.Fold exposing (..)
@@ -187,7 +189,48 @@ safetyTests =
         ]
 
 
+correctnessTests : Test
+correctnessTests =
+    describe "Correctness tests"
+        [ describe "List"
+            (let
+                initListTree =
+                    ListNode 2 [ ListNode 1 [], ListNode 3 [] ]
+             in
+             [ test "foldList" <| \_ -> Expect.equal 3 (foldListCount initListTree)
+             , test "foldListThen" <| \_ -> Expect.equal 3 (foldListThenCount initListTree)
+             , test "foldMapList" <| \_ -> Expect.equal 3 (foldMapListCount initListTree)
+             , test "foldMapListThen" <| \_ -> Expect.equal 3 (foldMapListThenCount initListTree)
+             ]
+            )
+        , describe "Dict"
+            (let
+                initDictTree =
+                    DictNode 2 (Dict.fromList [ ( "1", DictNode 1 Dict.empty ), ( "3", DictNode 3 Dict.empty ) ])
+             in
+             [ test "foldDict" <| \_ -> Expect.equal 3 (foldDictCount initDictTree)
+             , test "foldDictThen" <| \_ -> Expect.equal 3 (foldDictThenCount initDictTree)
+             , test "foldMapDict" <| \_ -> Expect.equal 3 (foldMapDictCount initDictTree)
+             , test "foldMapDictThen" <| \_ -> Expect.equal 3 (foldMapDictThenCount initDictTree)
+             ]
+            )
+        , describe "Array"
+            (let
+                initArrayTree =
+                    ArrayNode 2 (Array.fromList [ ArrayNode 1 Array.empty, ArrayNode 3 Array.empty ])
+             in
+             [ test "sequenceArray" <| \_ -> Expect.equal 3 (foldArrayCount initArrayTree)
+             , test "sequenceArrayThen" <| \_ -> Expect.equal 3 (foldArrayThenCount initArrayTree)
+             , test "traverseArray" <| \_ -> Expect.equal 3 (foldMapArrayCount initArrayTree)
+             , test "traverseArrayThen" <| \_ -> Expect.equal 3 (foldMapArrayThenCount initArrayTree)
+             ]
+            )
+        ]
+
+
 suite : Test
 suite =
     describe "Recursion.Fold"
-        [ safetyTests ]
+        [ safetyTests
+        , correctnessTests
+        ]
