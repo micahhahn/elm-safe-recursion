@@ -43,6 +43,156 @@ for helpers that work with containers of recursive types.
 @docs runRecursion
 
 
+# Converting unsafe recursions
+
+Converting an existing unsafe recursion to use `elm-safe-recursion` is very straightforward! There are only three steps:
+
+1.  Make the existing function definition into lambda function and pass it as the first argument to `runRecursion`
+2.  Wrap each base case of your recursion in a call to `base` and change each recursive function call to be `recurse`
+3.  Stitch together the `Rec` types created in your calls to `recurse` using `map`, `andThen`, and other helpers from [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Traverse) and [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Fold)
+
+These steps are simple enough to describe, but there might be some art involved (especially in step #3). So let's work through some examples!
+
+
+## Example: Fibonacci
+
+Note: This will not be the right™️ way to implement the calculation of the fibonacci sequence. Closed form expression and memoized algorithms exist.
+What we do here is take an inefficient and unsafe version and convert to an inefficient but safe version.
+
+
+### Naive Implementation
+
+    fib : Int -> Int
+    fib x =
+        case x of
+            0 ->
+                1
+
+            1 ->
+                1
+
+            _ ->
+                fib (x - 1) + fib (x - 2)
+
+
+### **Step 1:** Pass our function definition to `runRecursion`
+
+    fib : Int -> Int
+    fib init =
+        runRecursion
+            (\x ->
+                case x of
+                    0 ->
+                        1
+
+                    1 ->
+                        1
+
+                    _ ->
+                        fib (x - 1) + fib (x - 2)
+            )
+            init
+
+
+### **Step 2:** Base cases use `base` and recursive calls use `recurse`
+
+    fib : Int -> Int
+    fib init =
+        runRecursion
+            (\x ->
+                case x of
+                    0 ->
+                        base 1
+
+                    1 ->
+                        base 1
+
+                    _ ->
+                        recurse (x - 1) + recurse (x - 2)
+            )
+            init
+
+
+### **Step 3:** Fix the types using `map` and `andThen`
+
+Our code above will generate a compiler error that looks like this:
+
+    TYPE MISMATCH - Addition does not work with this value:
+
+                             recurse (x - 1) + recurse (x - 2)
+                             #^^^^^^^^^^^^^^#
+    This `recurse` call produces:
+
+        #Rec Int t t#
+
+    But (+) only works with #Int# and #Float# values.
+
+Previously we had a recursive call to `fib` which would give us an `Int` which we could add immediately.
+Now we have a `Rec` type which, similar to a `Promise` in javascript, might not actually have the value yet!
+
+We can use `andThen` to specify that the addition be done after the result of `recurse (x - 1)` is available.
+
+`recurse (x - 1) |> andThen (\fibX1 -> ...)`
+
+And we'll need to do a similar thing for `recurse (x - 2)` as well.
+
+`recurse (x - 2) |> andThen (\fibX2 -> ...)`
+
+If we combine these together we'll have access to both `fibX1` and `fibX2` and can add them together:
+
+    fib : Int -> Int
+    fib init =
+        runRecursion
+            (\x ->
+                case x of
+                    0 ->
+                        base 1
+
+                    1 ->
+                        base 1
+
+                    _ ->
+                        recurse (x - 1)
+                            |> andThen
+                                (\fibX1 ->
+                                    recurse (x - 2)
+                                        |> map (\fibX2 -> fibX1 + fibX2)
+                                )
+            )
+            init
+
+🎉🎉🎉 And we're done! 🎉🎉🎉
+
+Well not quite. As noted in the documentation above, due to some unfortunate implementation details, doing `recurse ... |> andThen ...` is not as efficient as it could be.
+This is why the `recurseThen` function exists.
+
+Let's revise our code to use `recurseThen` instead:
+
+    fib : Int -> Int
+    fib init =
+        runRecursion
+            (\x ->
+                case x of
+                    0 ->
+                        base 1
+
+                    1 ->
+                        base 1
+
+                    _ ->
+                        recurseThen (x - 1)
+                            (\fibX1 ->
+                                recurseThen (x - 2)
+                                    (\fibX2 ->
+                                        base (fibX1 + fibX2)
+                                    )
+                            )
+            )
+            init
+
+Not only faster, but even even a little easier on the eyes 🙃
+
+
 # Example
 
 Imagine we have a generic binary tree type that we want to write a map function for:

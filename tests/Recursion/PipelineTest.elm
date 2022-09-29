@@ -31,10 +31,10 @@ fib =
                     base 1
 
                 _ ->
-                    begin (+)
+                    startPipe (+)
                         |> recursePipe (x - 1)
                         |> recursePipe (x - 2)
-                        |> end
+                        |> endPipe
 
 
 correctnessTests : Test

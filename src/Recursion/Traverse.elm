@@ -80,6 +80,9 @@ sequenceList items =
 
 
 {-| Traverse a list where the elements are recursive types and then perform a recursive action on the result.
+
+For a pipeable version see [`sequenceListPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#sequenceListPipe).
+
 -}
 sequenceListThen : List r -> (List t -> Rec r t a) -> Rec r t a
 sequenceListThen items after =
@@ -105,6 +108,9 @@ traverseList project items =
 
 
 {-| Traverse a list where the elements contain recursive types and then perform a recursive action on the result.
+
+For a pipeable version see [`traverseListPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#traverseListPipe).
+
 -}
 traverseListThen : (x -> Rec r t a) -> List x -> (List a -> Rec r t b) -> Rec r t b
 traverseListThen project items after =
@@ -145,6 +151,9 @@ sequenceDict dict =
 
 
 {-| Traverse a `Dict` where the values are recursive types and then perform a recursive action on the result.
+
+For a pipeable version see [`sequenceDictPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#sequenceDictPipe).
+
 -}
 sequenceDictThen : Dict comparable r -> (Dict comparable t -> Rec r t a) -> Rec r t a
 sequenceDictThen dict after =
@@ -168,6 +177,9 @@ traverseDict project dict =
 
 
 {-| Traverse a `Dict` where the values contain recursive types and then perform a recursive action the result.
+
+For a pipeable version see [`traverseDictPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#traverseDictPipe).
+
 -}
 traverseDictThen : (comparable -> v -> Rec r t a) -> Dict comparable v -> (Dict comparable a -> Rec r t b) -> Rec r t b
 traverseDictThen project dict after =
@@ -191,6 +203,9 @@ sequenceArray items =
 
 
 {-| Traverse an `Array` where the values are recursive types and then perform a recursive action on the result.
+
+For a pipeable version see [`sequenceArrayPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#sequenceArrayPipe).
+
 -}
 sequenceArrayThen : Array r -> (Array t -> Rec r t a) -> Rec r t a
 sequenceArrayThen items after =
@@ -205,6 +220,9 @@ traverseArray project items =
 
 
 {-| Traverse an `Array` where the values contain recursive types and then perform a recursive action on the result.
+
+For a pipeable version see [`traverseArrayPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#traverseArrayPipe).
+
 -}
 traverseArrayThen : (x -> Rec r t a) -> Array x -> (Array a -> Rec r t b) -> Rec r t b
 traverseArrayThen project items after =
@@ -230,6 +248,9 @@ sequenceMaybe maybe =
 
 
 {-| Traverse a `Maybe` where the value might be a recursive type and then perform a recursive action on the result.
+
+For a pipeable version see [`sequenceMaybePipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#sequenceMaybePipe).
+
 -}
 sequenceMaybeThen : Maybe r -> (Maybe t -> Rec r t a) -> Rec r t a
 sequenceMaybeThen maybe after =
@@ -261,6 +282,9 @@ traverseMaybe project maybe =
 
 
 {-| Traverse a `Maybe` where the value might contain a recursive type and then perform a recursive action on the result.
+
+For a pipeable version see [`traverseMaybePipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#traverseMaybePipe).
+
 -}
 traverseMaybeThen : (x -> Rec r t a) -> Maybe x -> (Maybe a -> Rec r t b) -> Rec r t b
 traverseMaybeThen project maybe after =
@@ -280,6 +304,9 @@ sequenceResult result =
 
 
 {-| Traverse a `Result` where the success value might be a recursive type and then perform an action on the recursive result.
+
+For a pipeable version see [`sequenceResultPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#sequenceResultPipe).
+
 -}
 sequenceResultThen : Result e r -> (Result e t -> Rec r t a) -> Rec r t a
 sequenceResultThen result after =
@@ -304,6 +331,9 @@ traverseResult project result =
 
 
 {-| Traverse a `Result` where the success value might contain a recursive type and then perform an action on the recursive result.
+
+For a pipeable version see [`traverseResultPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Traverse#traverseResultPipe).
+
 -}
 traverseResultThen : (v -> Rec r t a) -> Result e v -> (Result e a -> Rec r t b) -> Rec r t b
 traverseResultThen project result after =

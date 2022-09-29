@@ -7,7 +7,10 @@
     "exposed-modules": [
         "Recursion",
         "Recursion.Fold",
-        "Recursion.Traverse"
+        "Recursion.Traverse",
+        "Recursion.Pipeline",
+        "Recursion.Pipeline.Fold",
+        "Recursion.Pipeline.Traverse"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
