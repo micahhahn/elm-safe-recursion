@@ -1,14 +1,9 @@
 module Recursion.Traverse exposing
-    ( sequenceList, sequenceListThen
-    , traverseList, traverseListThen
-    , sequenceDict, sequenceDictThen
-    , traverseDict, traverseDictThen
-    , sequenceArray, sequenceArrayThen
-    , traverseArray, traverseArrayThen
-    , sequenceMaybe, sequenceMaybeThen
-    , traverseMaybe, traverseMaybeThen
-    , sequenceResult, sequenceResultThen
-    , traverseResult, traverseResultThen
+    ( sequenceList, traverseList
+    , sequenceDict, traverseDict
+    , sequenceArray, traverseArray
+    , sequenceMaybe, traverseMaybe
+    , sequenceResult, traverseResult
     )
 
 {-| This module provides traversals for common data structures that contain recursive types.
@@ -26,39 +21,33 @@ If you are trying to write a map function over a recursive data structure, a tra
 
 # List
 
-@docs sequenceList, sequenceListThen
-@docs traverseList, traverseListThen
+@docs sequenceList, traverseList
 
 
 # Dict
 
-@docs sequenceDict, sequenceDictThen
-@docs traverseDict, traverseDictThen
+@docs sequenceDict, traverseDict
 
 
 # Array
 
-@docs sequenceArray, sequenceArrayThen
-@docs traverseArray, traverseArrayThen
+@docs sequenceArray, traverseArray
 
 
 # Maybe
 
-@docs sequenceMaybe, sequenceMaybeThen
-@docs traverseMaybe, traverseMaybeThen
+@docs sequenceMaybe, traverseMaybe
 
 
 # Result
 
-@docs sequenceResult, sequenceResultThen
-@docs traverseResult, traverseResultThen
+@docs sequenceResult, traverseResult
 
 -}
 
 import Array exposing (Array)
 import Dict exposing (Dict)
 import Recursion exposing (..)
-import Recursion.Fold exposing (..)
 
 
 {-| Traverse a list where the elements are recursive types.
@@ -75,15 +64,8 @@ import Recursion.Fold exposing (..)
 
 -}
 sequenceList : List r -> Rec r t (List t)
-sequenceList items =
-    sequenceListThen items base
-
-
-{-| Traverse a list where the elements are recursive types and then perform a recursive action on the result.
--}
-sequenceListThen : List r -> (List t -> Rec r t a) -> Rec r t a
-sequenceListThen items after =
-    foldListThen (::) [] (List.reverse items) after
+sequenceList =
+    traverseList recurse
 
 
 {-| Traverse a list where the elements contain recursive types.
@@ -101,18 +83,11 @@ sequenceListThen items after =
 -}
 traverseList : (x -> Rec r t a) -> List x -> Rec r t (List a)
 traverseList project items =
-    traverseListThen project items base
-
-
-{-| Traverse a list where the elements contain recursive types and then perform a recursive action on the result.
--}
-traverseListThen : (x -> Rec r t a) -> List x -> (List a -> Rec r t b) -> Rec r t b
-traverseListThen project items after =
     let
         go accum todo =
             case todo of
                 [] ->
-                    after <| List.reverse accum
+                    base <| List.reverse accum
 
                 item :: rest ->
                     project item |> andThen (\a -> go (a :: accum) rest)
@@ -140,42 +115,19 @@ traverseListThen project items after =
 
 -}
 sequenceDict : Dict comparable r -> Rec r t (Dict comparable t)
-sequenceDict dict =
-    sequenceDictThen dict base
-
-
-{-| Traverse a `Dict` where the values are recursive types and then perform a recursive action on the result.
--}
-sequenceDictThen : Dict comparable r -> (Dict comparable t -> Rec r t a) -> Rec r t a
-sequenceDictThen dict after =
-    let
-        go accum todo =
-            case todo of
-                [] ->
-                    after (Dict.fromList accum)
-
-                ( key, value ) :: rest ->
-                    recurseThen value (\t -> go (( key, t ) :: accum) rest)
-    in
-    go [] (Dict.toList dict)
+sequenceDict =
+    traverseDict (\_ v -> recurse v)
 
 
 {-| Traverse a `Dict` where the values contain recursive types.
 -}
 traverseDict : (comparable -> v -> Rec r t a) -> Dict comparable v -> Rec r t (Dict comparable a)
 traverseDict project dict =
-    traverseDictThen project dict base
-
-
-{-| Traverse a `Dict` where the values contain recursive types and then perform a recursive action the result.
--}
-traverseDictThen : (comparable -> v -> Rec r t a) -> Dict comparable v -> (Dict comparable a -> Rec r t b) -> Rec r t b
-traverseDictThen project dict after =
     let
         go accum todo =
             case todo of
                 [] ->
-                    after (Dict.fromList accum)
+                    base (Dict.fromList accum)
 
                 ( key, value ) :: rest ->
                     project key value |> andThen (\a -> go (( key, a ) :: accum) rest)
@@ -186,29 +138,15 @@ traverseDictThen project dict after =
 {-| Traverse an `Array` where the values are recursive types.
 -}
 sequenceArray : Array r -> Rec r t (Array t)
-sequenceArray items =
-    sequenceArrayThen items base
-
-
-{-| Traverse an `Array` where the values are recursive types and then perform a recursive action on the result.
--}
-sequenceArrayThen : Array r -> (Array t -> Rec r t a) -> Rec r t a
-sequenceArrayThen items after =
-    sequenceListThen (Array.toList items) (Array.fromList >> after)
+sequenceArray =
+    traverseArray recurse
 
 
 {-| Traverse an `Array` where the values contain recursive types.
 -}
 traverseArray : (x -> Rec r t a) -> Array x -> Rec r t (Array a)
 traverseArray project items =
-    traverseArrayThen project items base
-
-
-{-| Traverse an `Array` where the values contain recursive types and then perform a recursive action on the result.
--}
-traverseArrayThen : (x -> Rec r t a) -> Array x -> (Array a -> Rec r t b) -> Rec r t b
-traverseArrayThen project items after =
-    traverseListThen project (Array.toList items) (Array.fromList >> after)
+    traverseList project (Array.toList items) |> map Array.fromList
 
 
 {-| Traverse a `Maybe` where the value might be a recursive type.
@@ -225,20 +163,8 @@ traverseArrayThen project items after =
 
 -}
 sequenceMaybe : Maybe r -> Rec r t (Maybe t)
-sequenceMaybe maybe =
-    sequenceMaybeThen maybe base
-
-
-{-| Traverse a `Maybe` where the value might be a recursive type and then perform a recursive action on the result.
--}
-sequenceMaybeThen : Maybe r -> (Maybe t -> Rec r t a) -> Rec r t a
-sequenceMaybeThen maybe after =
-    case maybe of
-        Nothing ->
-            after Nothing
-
-        Just r ->
-            recurseThen r (Just >> after)
+sequenceMaybe =
+    traverseMaybe recurse
 
 
 {-| Traverse a `Maybe` where the value might contain a recursive type.
@@ -257,38 +183,19 @@ sequenceMaybeThen maybe after =
 -}
 traverseMaybe : (x -> Rec r t a) -> Maybe x -> Rec r t (Maybe a)
 traverseMaybe project maybe =
-    traverseMaybeThen project maybe base
-
-
-{-| Traverse a `Maybe` where the value might contain a recursive type and then perform a recursive action on the result.
--}
-traverseMaybeThen : (x -> Rec r t a) -> Maybe x -> (Maybe a -> Rec r t b) -> Rec r t b
-traverseMaybeThen project maybe after =
     case maybe of
         Nothing ->
-            after Nothing
+            base Nothing
 
         Just x ->
-            project x |> andThen (Just >> after)
+            project x |> map Just
 
 
 {-| Traverse a `Result` where the success value might be a recursive type.
 -}
 sequenceResult : Result e r -> Rec r t (Result e t)
-sequenceResult result =
-    sequenceResultThen result base
-
-
-{-| Traverse a `Result` where the success value might be a recursive type and then perform an action on the recursive result.
--}
-sequenceResultThen : Result e r -> (Result e t -> Rec r t a) -> Rec r t a
-sequenceResultThen result after =
-    case result of
-        Err err ->
-            after (Err err)
-
-        Ok a ->
-            recurseThen a (Ok >> after)
+sequenceResult =
+    traverseResult recurse
 
 
 {-| Traverse a `Result` where the success value might contain a recursive type.
@@ -301,15 +208,3 @@ traverseResult project result =
 
         Ok c ->
             project c |> map Ok
-
-
-{-| Traverse a `Result` where the success value might contain a recursive type and then perform an action on the recursive result.
--}
-traverseResultThen : (v -> Rec r t a) -> Result e v -> (Result e a -> Rec r t b) -> Rec r t b
-traverseResultThen project result after =
-    case result of
-        Err err ->
-            after (Err err)
-
-        Ok c ->
-            project c |> andThen (Ok >> after)

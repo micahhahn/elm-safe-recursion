@@ -1,10 +1,7 @@
 module Recursion.Fold exposing
-    ( foldList, foldListThen
-    , foldMapList, foldMapListThen
-    , foldDict, foldDictThen
-    , foldMapDict, foldMapDictThen
-    , foldArray, foldArrayThen
-    , foldMapArray, foldMapArrayThen
+    ( foldList, foldMapList
+    , foldDict, foldMapDict
+    , foldArray, foldMapArray
     )
 
 {-| This module contains functions for folding common collections types that can contain recursive data structures.
@@ -14,20 +11,17 @@ Prefer to use the functions that accept a continuation when possible (`fold____T
 
 # List
 
-@docs foldList, foldListThen
-@docs foldMapList, foldMapListThen
+@docs foldList, foldMapList
 
 
 # Dict
 
-@docs foldDict, foldDictThen
-@docs foldMapDict, foldMapDictThen
+@docs foldDict, foldMapDict
 
 
 # Array
 
-@docs foldArray, foldArrayThen
-@docs foldMapArray, foldMapArrayThen
+@docs foldArray, foldMapArray
 
 -}
 
@@ -56,19 +50,12 @@ import Recursion exposing (..)
 -}
 foldList : (t -> a -> a) -> a -> List r -> Rec r t a
 foldList fold accum items =
-    foldListThen fold accum items base
-
-
-{-| Fold a list of items which are recurisve types and then perform a recursive action with the result.
--}
-foldListThen : (t -> a -> a) -> a -> List r -> (a -> Rec r t b) -> Rec r t b
-foldListThen fold accum items after =
     case items of
         [] ->
-            after accum
+            base accum
 
         item :: rest ->
-            recurseThen item (\t -> foldListThen fold (fold t accum) rest after)
+            recurse item |> andThen (\t -> foldList fold (fold t accum) rest)
 
 
 {-| Fold a list of items which contain recursive types.
@@ -94,19 +81,12 @@ foldListThen fold accum items after =
 -}
 foldMapList : (x -> a -> Rec r t a) -> a -> List x -> Rec r t a
 foldMapList foldMap accum items =
-    foldMapListThen foldMap accum items base
-
-
-{-| Fold a list of items which contain recursive types and then perform a recursive action with the result.
--}
-foldMapListThen : (x -> a -> Rec r t a) -> a -> List x -> (a -> Rec r t b) -> Rec r t b
-foldMapListThen foldMap accum items after =
     case items of
         [] ->
-            after accum
+            base accum
 
         item :: rest ->
-            foldMap item accum |> andThen (\a -> foldMapListThen foldMap a rest after)
+            foldMap item accum |> andThen (\a -> foldMapList foldMap a rest)
 
 
 {-| Fold a `Dict` whose values are recursive types.
@@ -129,21 +109,14 @@ foldMapListThen foldMap accum items after =
 -}
 foldDict : (comparable -> t -> a -> a) -> a -> Dict comparable r -> Rec r t a
 foldDict fold init dict =
-    foldDictThen fold init dict base
-
-
-{-| Fold a `Dict` whose values are recursive types and then perform a recursive action with the result.
--}
-foldDictThen : (comparable -> t -> a -> a) -> a -> Dict comparable r -> (a -> Rec r t b) -> Rec r t b
-foldDictThen fold init dict after =
     let
         go todo accum =
             case todo of
                 [] ->
-                    after accum
+                    base accum
 
                 ( key, value ) :: rest ->
-                    recurseThen value (\t -> go rest (fold key t accum))
+                    recurse value |> andThen (\t -> go rest (fold key t accum))
     in
     go (Dict.toList dict) init
 
@@ -180,22 +153,6 @@ foldMapDict foldMap init dict =
     go (Dict.toList dict) init
 
 
-{-| Fold a `Dict` whose values contain recursive types and then perform a recursive action with the result.
--}
-foldMapDictThen : (comparable -> v -> a -> Rec r t a) -> a -> Dict comparable v -> (a -> Rec r t b) -> Rec r t b
-foldMapDictThen foldMap init dict after =
-    let
-        go todo accum =
-            case todo of
-                [] ->
-                    after accum
-
-                ( key, value ) :: rest ->
-                    foldMap key value accum |> andThen (go rest)
-    in
-    go (Dict.toList dict) init
-
-
 {-| Fold an `Array` whose items are recursive types.
 -}
 foldArray : (t -> a -> a) -> a -> Array r -> Rec r t a
@@ -203,22 +160,8 @@ foldArray fold accum items =
     foldList fold accum (Array.toList items)
 
 
-{-| Fold an `Array` whose items are recursive types and then perform a recursive action with the result.
--}
-foldArrayThen : (t -> a -> a) -> a -> Array r -> (a -> Rec r t b) -> Rec r t b
-foldArrayThen fold accum items after =
-    foldListThen fold accum (Array.toList items) after
-
-
 {-| Fold an `Array` whose items contain recursive types.
 -}
 foldMapArray : (x -> a -> Rec r t a) -> a -> Array x -> Rec r t a
 foldMapArray foldMap accum items =
     foldMapList foldMap accum (Array.toList items)
-
-
-{-| Fold an `Array` whose items contain recursive types and then perform a recursive action with the result.
--}
-foldMapArrayThen : (x -> a -> Rec r t a) -> a -> Array x -> (a -> Rec r t b) -> Rec r t b
-foldMapArrayThen foldMap accum items after =
-    foldMapListThen foldMap accum (Array.toList items) after

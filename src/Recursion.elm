@@ -1,7 +1,7 @@
 module Recursion exposing
     ( Rec
-    , base, recurse, recurseThen
-    , map, andThen
+    , base, recurse
+    , map, andThen, apply
     , runRecursion
     )
 
@@ -26,12 +26,12 @@ you to preserve the recursive elegance that makes functional programming beautif
 
 ## Creating a `Rec`
 
-@docs base, recurse, recurseThen
+@docs base, recurse
 
 
 ## Manipulating a `Rec`
 
-@docs map, andThen
+@docs map, andThen, apply
 
 Check out [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Traverse)
 and [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Fold)
@@ -91,6 +91,8 @@ We are exposing ourselves to a crash if the tree is deep enough that we would ha
 
 -}
 
+import Recursion.Types exposing (RecStep(..))
+
 
 {-| An opaque type representing a recursive computation.
 
@@ -104,16 +106,15 @@ So instead of directly manipulating the value in a `Rec`, we instead can specify
 when it is available using `map` and `andThen`.
 
 -}
-type Rec r t a
-    = Base a
-    | Recurse r (t -> Rec r t a)
+type alias Rec r t a =
+    Recursion.Types.Rec r t a
 
 
 {-| The base case of a recursion. The value is injected directly into the `Rec` type.
 -}
 base : a -> Rec r t a
 base =
-    Base
+    (|>)
 
 
 {-| Recurse on a value.
@@ -122,43 +123,32 @@ When the recursion is complete the `Rec` will contain a value of type `t`.
 
 -}
 recurse : r -> Rec r t t
-recurse r =
-    Recurse r base
-
-
-{-| Recurse on a value and then take another action on the result.
-
-If you find yourself writing code that looks like `recurse x |> andThen ...` or `recurse x |> map ...` you should
-consider using `recurseThen` instead as it will be much more efficient.
-
--}
-recurseThen : r -> (t -> Rec r t a) -> Rec r t a
-recurseThen =
+recurse =
     Recurse
 
 
 {-| Apply a function to the result of a `Rec` computation.
 -}
 map : (a -> b) -> Rec r t a -> Rec r t b
-map f step =
-    case step of
-        Base t ->
-            Base (f t)
-
-        Recurse r after ->
-            Recurse r (after >> map f)
+map f rec after =
+    rec (\a -> after (f a))
 
 
 {-| Apply a function to the result of a `Rec` computation that can specify more recursion.
 -}
 andThen : (a -> Rec r t b) -> Rec r t a -> Rec r t b
-andThen next step =
-    case step of
-        Base t ->
-            next t
+andThen f rec b =
+    rec (\a -> f a b)
 
-        Recurse r after ->
-            Recurse r (after >> andThen next)
+
+{-| Apply the value in a `Rec` to the function contained within another.
+
+This function is meant to be chained.
+
+-}
+apply : Rec r t a -> Rec r t (a -> b) -> Rec r t b
+apply rec1 rec2 after =
+    rec1 (\a -> rec2 (\f -> after (f a)))
 
 
 {-| Run a recursion given a function to run one layer and an initial value.
@@ -177,6 +167,6 @@ runRecursion project init =
                             go (next t) rest
 
                 Recurse r after ->
-                    go (project r) (after :: stack)
+                    go (project r Base) (after :: stack)
     in
-    go (project init) []
+    go (project init Base) []
