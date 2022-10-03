@@ -8,8 +8,6 @@ module Recursion.Traverse exposing
 
 {-| This module provides traversals for common data structures that contain recursive types.
 
-Prefer to use the functions that accept a continuation when possible (`sequence____Then` or `traverse____Then`) as they will be more efficient than folding and then mapping after.
-
 
 ### What is a traversal?
 
@@ -146,7 +144,8 @@ sequenceArray =
 -}
 traverseArray : (x -> Rec r t a) -> Array x -> Rec r t (Array a)
 traverseArray project items =
-    traverseList project (Array.toList items) |> map Array.fromList
+    traverseList project (Array.toList items)
+        |> map Array.fromList
 
 
 {-| Traverse a `Maybe` where the value might be a recursive type.

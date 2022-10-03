@@ -6,8 +6,6 @@ module Recursion.Fold exposing
 
 {-| This module contains functions for folding common collections types that can contain recursive data structures.
 
-Prefer to use the functions that accept a continuation when possible (`fold____Then`) as they will be more efficient than folding and then mapping after.
-
 
 # List
 
