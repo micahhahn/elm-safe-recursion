@@ -60,6 +60,9 @@ foldList fold accum items =
 
 
 {-| Fold a list of items which are recurisve types and then perform a recursive action with the result.
+
+For a pipeable version see [`foldListPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Fold#foldListPipe).
+
 -}
 foldListThen : (t -> a -> a) -> a -> List r -> (a -> Rec r t b) -> Rec r t b
 foldListThen fold accum items after =
@@ -98,6 +101,9 @@ foldMapList foldMap accum items =
 
 
 {-| Fold a list of items which contain recursive types and then perform a recursive action with the result.
+
+For a pipeable version see [`foldMapListPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Fold#foldMapListPipe).
+
 -}
 foldMapListThen : (x -> a -> Rec r t a) -> a -> List x -> (a -> Rec r t b) -> Rec r t b
 foldMapListThen foldMap accum items after =
@@ -133,6 +139,9 @@ foldDict fold init dict =
 
 
 {-| Fold a `Dict` whose values are recursive types and then perform a recursive action with the result.
+
+For a pipeable version see [`foldDictPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Fold#foldDictPipe).
+
 -}
 foldDictThen : (comparable -> t -> a -> a) -> a -> Dict comparable r -> (a -> Rec r t b) -> Rec r t b
 foldDictThen fold init dict after =
@@ -181,6 +190,9 @@ foldMapDict foldMap init dict =
 
 
 {-| Fold a `Dict` whose values contain recursive types and then perform a recursive action with the result.
+
+For a pipeable version see [`foldMapDictPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Fold#foldMapDictPipe).
+
 -}
 foldMapDictThen : (comparable -> v -> a -> Rec r t a) -> a -> Dict comparable v -> (a -> Rec r t b) -> Rec r t b
 foldMapDictThen foldMap init dict after =
@@ -204,6 +216,9 @@ foldArray fold accum items =
 
 
 {-| Fold an `Array` whose items are recursive types and then perform a recursive action with the result.
+
+For a pipeable version see [`foldArrayPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Fold#foldArrayPipe).
+
 -}
 foldArrayThen : (t -> a -> a) -> a -> Array r -> (a -> Rec r t b) -> Rec r t b
 foldArrayThen fold accum items after =
@@ -218,6 +233,9 @@ foldMapArray foldMap accum items =
 
 
 {-| Fold an `Array` whose items contain recursive types and then perform a recursive action with the result.
+
+For a pipeable version see [`foldMapArrayPipe`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Pipeline-Fold#foldMapArrayPipe).
+
 -}
 foldMapArrayThen : (x -> a -> Rec r t a) -> a -> Array x -> (a -> Rec r t b) -> Rec r t b
 foldMapArrayThen foldMap accum items after =
