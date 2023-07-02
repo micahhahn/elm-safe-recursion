@@ -1,8 +1,8 @@
 module Recursion exposing
     ( Rec
-    , base, recurse, recurseThen
-    , map, andThen
+    , base, recurse
     , runRecursion
+    , recurse2, recurse3, recurse4
     )
 
 {-| This module provides an abstraction over general recursion that allows the recursive computation
@@ -104,14 +104,14 @@ So instead of directly manipulating the value in a `Rec`, we instead can specify
 when it is available using `map` and `andThen`.
 
 -}
-type Rec r t a
-    = Base a
-    | Recurse r (t -> Rec r t a)
+type Rec r t
+    = Base t
+    | Recurse r (t -> Rec r t)
 
 
 {-| The base case of a recursion. The value is injected directly into the `Rec` type.
 -}
-base : a -> Rec r t a
+base : t -> Rec r t
 base =
     Base
 
@@ -121,49 +121,31 @@ base =
 When the recursion is complete the `Rec` will contain a value of type `t`.
 
 -}
-recurse : r -> Rec r t t
-recurse r =
-    Recurse r base
-
-
-{-| Recurse on a value and then take another action on the result.
-
-If you find yourself writing code that looks like `recurse x |> andThen ...` or `recurse x |> map ...` you should
-consider using `recurseThen` instead as it will be much more efficient.
-
--}
-recurseThen : r -> (t -> Rec r t a) -> Rec r t a
-recurseThen =
+recurse : r -> (t -> Rec r t) -> Rec r t
+recurse =
     Recurse
 
 
-{-| Apply a function to the result of a `Rec` computation.
+{-| Recurse over 2 values
 -}
-map : (a -> b) -> Rec r t a -> Rec r t b
-map f step =
-    case step of
-        Base t ->
-            Base (f t)
-
-        Recurse r after ->
-            Recurse r (after >> map f)
+recurse2 : r -> r -> (t -> t -> Rec r t) -> Rec r t
+recurse2 r1 r2 f =
+    Recurse r1 (\t1 -> Recurse r2 (\t2 -> f t1 t2))
 
 
-{-| Apply a function to the result of a `Rec` computation that can specify more recursion.
--}
-andThen : (a -> Rec r t b) -> Rec r t a -> Rec r t b
-andThen next step =
-    case step of
-        Base t ->
-            next t
+recurse3 : r -> r -> r -> (t -> t -> t -> Rec r t) -> Rec r t
+recurse3 r1 r2 r3 f =
+    Recurse r1 (\t1 -> Recurse r2 (\t2 -> Recurse r3 (\t3 -> f t1 t2 t3)))
 
-        Recurse r after ->
-            Recurse r (after >> andThen next)
+
+recurse4 : r -> r -> r -> r -> (t -> t -> t -> t -> Rec r t) -> Rec r t
+recurse4 r1 r2 r3 r4 f =
+    Recurse r1 (\t1 -> Recurse r2 (\t2 -> Recurse r3 (\t3 -> Recurse r4 (\t4 -> f t1 t2 t3 t4))))
 
 
 {-| Run a recursion given a function to run one layer and an initial value.
 -}
-runRecursion : (r -> Rec r t t) -> r -> t
+runRecursion : (r -> Rec r t) -> r -> t
 runRecursion project init =
     let
         go step stack =
