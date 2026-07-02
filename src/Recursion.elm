@@ -1,8 +1,8 @@
 module Recursion exposing
     ( Rec
     , base, recurse, recurseThen
-    , map, andThen
-    , runRecursion
+    , map, mapRec, andThen
+    , runRecursion, runRecursionWithState
     )
 
 {-| This module provides an abstraction over general recursion that allows the recursive computation
@@ -31,7 +31,7 @@ you to preserve the recursive elegance that makes functional programming beautif
 
 ## Manipulating a `Rec`
 
-@docs map, andThen
+@docs map, mapRec, andThen
 
 Check out [`Recursion.Traverse`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Traverse)
 and [`Recursion.Fold`](https://package.elm-lang.org/packages/micahhahn/elm-safe-recursion/2.0.0/Recursion-Fold)
@@ -40,7 +40,7 @@ for helpers that work with containers of recursive types.
 
 ## Running a `Rec`
 
-@docs runRecursion
+@docs runRecursion, runRecursionWithState
 
 
 # Example
@@ -149,6 +149,17 @@ map f step =
             Recurse r (after >> map f)
 
 
+{-| Apply a function to the recursive type of a `Rec` computation -}
+mapRec : (r1 -> r2) -> Rec r1 t a -> Rec r2 t a
+mapRec f step = 
+    case step of
+        Base t ->
+            Base t
+
+        Recurse r after ->
+            Recurse (f r) (after >> mapRec f)
+
+
 {-| Apply a function to the result of a `Rec` computation that can specify more recursion.
 -}
 andThen : (a -> Rec r t b) -> Rec r t a -> Rec r t b
@@ -180,3 +191,12 @@ runRecursion project init =
                     go (project r) (after :: stack)
     in
     go (project init) []
+
+{-| Like `runRecursion` but carries an additional state variable the recursion proceeds
+
+Note that state is not accumulated across siblings, but rather passed from parent to child.
+
+-}
+runRecursionWithState : (r -> s -> Rec ( r, s ) t t) -> r -> s -> t
+runRecursionWithState f init state =
+    runRecursion (\( r, s ) -> f r s) ( init, state )
