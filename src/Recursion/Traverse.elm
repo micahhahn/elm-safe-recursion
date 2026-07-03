@@ -194,7 +194,7 @@ sequenceArray items =
 -}
 sequenceArrayThen : Array r -> (Array t -> Rec r t a) -> Rec r t a
 sequenceArrayThen items after =
-    sequenceListThen (Array.toList items) (Array.fromList >> after)
+    sequenceListThen (Array.toList items) (\l -> after (Array.fromList l))
 
 
 {-| Traverse an `Array` where the values contain recursive types.
@@ -208,7 +208,7 @@ traverseArray project items =
 -}
 traverseArrayThen : (x -> Rec r t a) -> Array x -> (Array a -> Rec r t b) -> Rec r t b
 traverseArrayThen project items after =
-    traverseListThen project (Array.toList items) (Array.fromList >> after)
+    traverseListThen project (Array.toList items) (\l -> after (Array.fromList l))
 
 
 {-| Traverse a `Maybe` where the value might be a recursive type.
@@ -238,7 +238,7 @@ sequenceMaybeThen maybe after =
             after Nothing
 
         Just r ->
-            recurseThen r (Just >> after)
+            recurseThen r (\a -> after (Just a))
 
 
 {-| Traverse a `Maybe` where the value might contain a recursive type.
@@ -269,7 +269,7 @@ traverseMaybeThen project maybe after =
             after Nothing
 
         Just x ->
-            project x |> andThen (Just >> after)
+            project x |> andThen (\a -> after (Just a))
 
 
 {-| Traverse a `Result` where the success value might be a recursive type.
@@ -288,7 +288,7 @@ sequenceResultThen result after =
             after (Err err)
 
         Ok a ->
-            recurseThen a (Ok >> after)
+            recurseThen a (\t -> after (Ok t))
 
 
 {-| Traverse a `Result` where the success value might contain a recursive type.
@@ -312,4 +312,4 @@ traverseResultThen project result after =
             after (Err err)
 
         Ok c ->
-            project c |> andThen (Ok >> after)
+            project c |> andThen (\t -> after (Ok t))

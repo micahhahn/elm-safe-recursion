@@ -146,18 +146,19 @@ map f step =
             Base (f t)
 
         Recurse r after ->
-            Recurse r (after >> map f)
+            Recurse r (\a -> map f (after a))
 
 
-{-| Apply a function to the recursive type of a `Rec` computation -}
+{-| Apply a function to the recursive type of a `Rec` computation
+-}
 mapRec : (r1 -> r2) -> Rec r1 t a -> Rec r2 t a
-mapRec f step = 
+mapRec f step =
     case step of
         Base t ->
             Base t
 
         Recurse r after ->
-            Recurse (f r) (after >> mapRec f)
+            Recurse (f r) (\a -> mapRec f (after a))
 
 
 {-| Apply a function to the result of a `Rec` computation that can specify more recursion.
@@ -169,7 +170,7 @@ andThen next step =
             next t
 
         Recurse r after ->
-            Recurse r (after >> andThen next)
+            Recurse r (\a -> andThen next (after a))
 
 
 {-| Run a recursion given a function to run one layer and an initial value.
@@ -191,6 +192,7 @@ runRecursion project init =
                     go (project r) (after :: stack)
     in
     go (project init) []
+
 
 {-| Like `runRecursion` but carries an additional state variable the recursion proceeds
 
