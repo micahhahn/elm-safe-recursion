@@ -1,6 +1,6 @@
 module Recursion exposing
     ( Rec
-    , base, recurse, recurseThen
+    , base, recurse, recurseThen, recurse2Then, recurse3Then, recurse4Then
     , map, mapRec, andThen
     , runRecursion, runRecursionWithState
     )
@@ -26,7 +26,7 @@ you to preserve the recursive elegance that makes functional programming beautif
 
 ## Creating a `Rec`
 
-@docs base, recurse, recurseThen
+@docs base, recurse, recurseThen, recurse2Then, recurse3Then, recurse4Then
 
 
 ## Manipulating a `Rec`
@@ -79,13 +79,7 @@ We are exposing ourselves to a crash if the tree is deep enough that we would ha
                         base (Leaf (f a))
 
                     Node l r ->
-                        recurseThen l
-                            (\newL ->
-                                recurseThen r
-                                    (\newR ->
-                                        baes <| Node newL newR
-                                    )
-                            )
+                        recurse2Then l r (\newL newR -> base <| Node newL newR)
             )
             initTree
 
@@ -135,6 +129,27 @@ consider using `recurseThen` instead as it will be much more efficient.
 recurseThen : r -> (t -> Rec r t a) -> Rec r t a
 recurseThen =
     Recurse
+
+
+{-| `recurseThen` over 2 arguments
+-}
+recurse2Then : r -> r -> (t -> t -> Rec r t a) -> Rec r t a
+recurse2Then r1 r2 f =
+    Recurse r1 (\t1 -> Recurse r2 (\t2 -> f t1 t2))
+
+
+{-| `recurseThen` over 3 arguments
+-}
+recurse3Then : r -> r -> r -> (t -> t -> t -> Rec r t a) -> Rec r t a
+recurse3Then r1 r2 r3 f =
+    Recurse r1 (\t1 -> Recurse r2 (\t2 -> Recurse r3 (\t3 -> f t1 t2 t3)))
+
+
+{-| `recurseThen` over 4 arguments
+-}
+recurse4Then : r -> r -> r -> r -> (t -> t -> t -> t -> Rec r t a) -> Rec r t a
+recurse4Then r1 r2 r3 r4 f =
+    Recurse r1 (\t1 -> Recurse r2 (\t2 -> Recurse r3 (\t3 -> Recurse r4 (\t4 -> f t1 t2 t3 t4))))
 
 
 {-| Apply a function to the result of a `Rec` computation.
@@ -194,7 +209,7 @@ runRecursion project init =
     go (project init) []
 
 
-{-| Like `runRecursion` but carries an additional state variable the recursion proceeds
+{-| Like `runRecursion` but carries an additional state variable as the recursion proceeds.
 
 Note that state is not accumulated across siblings, but rather passed from parent to child.
 
